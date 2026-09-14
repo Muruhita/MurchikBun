@@ -16,15 +16,18 @@ export default async function handler(req, res) {
   await redis.del(stateKey);
 
   try {
-    // Запрашиваем токен у Discord (без PKCE для простоты, можно добавить позже)
     const tokenData = await getDiscordToken(code);
     const user = await getDiscordUser(tokenData.access_token);
     const jwtToken = createToken(user);
 
+    await redis.set(`username:${user.id}`, user.username);
+    if (user.avatar) {
+      await redis.set(`avatar:${user.id}`, user.avatar);
+    }
+
     const isLocal = process.env.NODE_ENV === 'development';
     const secureFlag = isLocal ? '' : '; Secure';
 
-    // Усиленная кука: SameSite=Strict
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400${secureFlag}`);
     res.redirect('/dashboard');
   } catch (error) {
