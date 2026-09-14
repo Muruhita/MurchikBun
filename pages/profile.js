@@ -13,8 +13,8 @@ const DEPARTMENTS = [
   { id: 'fna', name: 'FNA (Federal National Academy)' },
   { id: 'nsb', name: 'NSB (National Security Branch)' },
   { id: 'trainee', name: 'TR (Trainee)' },
-  { id: 'Director', name: 'Director' },
-  { id: 'COD', name: 'Chief Of Discipline' }
+  { id: 'director', name: 'Director' },
+  { id: 'cod', name: 'Chief Of Discipline' }
 ];
 
 export default function Profile() {
