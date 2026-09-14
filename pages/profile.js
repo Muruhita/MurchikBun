@@ -12,7 +12,9 @@ const DEPARTMENTS = [
   { id: 'dea', name: 'DEA (Drug Enforcement Administration)' },
   { id: 'fna', name: 'FNA (Federal National Academy)' },
   { id: 'nsb', name: 'NSB (National Security Branch)' },
-  { id: 'trainee', name: 'TR (Trainee)' }
+  { id: 'trainee', name: 'TR (Trainee)' },
+  { id: 'Director', name: 'Director' },
+  { id: 'COD', name: 'Chief Of Discipline' }
 ];
 
 export default function Profile() {
