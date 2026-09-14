@@ -52,7 +52,7 @@ export default function Admins() {
             // Определяем стиль карточки как на /members
             let cardStyle = {
               background: 'linear-gradient(135deg, #333333, #8C8C8C)',
-              border: '2px solid #3b82f6'
+              border: '2px solid #6E038F'
             };
 
             if (admin.profileCustom) {
