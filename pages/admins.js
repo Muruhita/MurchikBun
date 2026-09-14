@@ -51,7 +51,7 @@ export default function Admins() {
           {admins.map(admin => {
             // Определяем стиль карточки как на /members
             let cardStyle = {
-              background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+              background: 'linear-gradient(135deg, #BA0468, #290369)',
               border: '2px solid #3b82f6'
             };
 
