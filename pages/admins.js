@@ -42,7 +42,7 @@ export default function Admins() {
 
   return (
     <Layout>
-      <h1 className="page-title">🛡️ Администрация</h1>
+      <h1 className="page-title"> Админчики</h1>
 
       {admins.length === 0 ? (
         <p className="empty-text">Список админов пуст.</p>
@@ -51,7 +51,7 @@ export default function Admins() {
           {admins.map(admin => {
             // Определяем стиль карточки как на /members
             let cardStyle = {
-              background: 'linear-gradient(135deg, #BA0468, #290369)',
+              background: 'linear-gradient(135deg, #333333, #8C8C8C)',
               border: '2px solid #3b82f6'
             };
 
@@ -97,7 +97,7 @@ export default function Admins() {
                   <span className="admin-department">
                     🏢 {DEPARTMENTS_NAMES[admin.department] || admin.department}
                   </span>
-                  <span className="admin-status">🛡️ Администратор</span>
+                  <span className="admin-status">Администратор</span>
                 </div>
               </div>
             );
