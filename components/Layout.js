@@ -84,6 +84,8 @@ export default function Layout({ children }) {
         <span className="footer-sep">•</span>
         <a href="/hosting" className="footer-link">Фотохостинги</a>
         <span className="footer-sep">•</span>
+        <a href="/admins" className="footer-link">Админы</a>
+        <span className="footer-sep">•</span>
         <span className="footer-author">Автор: @muruh1ta</span>
       </footer>
 
