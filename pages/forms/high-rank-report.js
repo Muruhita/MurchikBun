@@ -229,7 +229,7 @@ export default function HighRankReportForm() {
         }
         .edit-btn {
           background: rgba(88, 101, 242, 0.2);
-          color: #a0b4ff;
+          color: #B869B8;
           border: 1px solid rgba(88, 101, 242, 0.5);
           padding: 6px 12px;
           border-radius: 8px;
@@ -272,7 +272,7 @@ export default function HighRankReportForm() {
           font-family: inherit;
         }
         .conditions-textarea:focus {
-          border-color: #5865F2;
+          border-color: #742F75;
           box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
         }
         .conditions-actions {
@@ -281,7 +281,7 @@ export default function HighRankReportForm() {
           margin-top: 12px;
         }
         .save-btn {
-          background: #5865F2;
+          background: #355F78;
           color: white;
           border: none;
           padding: 10px 18px;
