@@ -58,10 +58,10 @@ export default function Admins() {
             if (admin.profileCustom) {
               if (admin.profileCustom.type === 'preset') {
                 const presets = {
-                  default: { background: '#161616', border: '1px solid #333' },
-                  blue: { background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', border: '1px solid #3b82f6' },
-                  purple: { background: 'linear-gradient(135deg, #4c1d95, #a855f7)', border: '1px solid #a855f7' },
-                  green: { background: 'linear-gradient(135deg, #065f46, #10b981)', border: '1px solid #10b981' }
+                  default: { background: '#7670FF', border: '1px solid #42186E' },
+                  blue: { background: 'linear-gradient(135deg, #3C5875, #7670FF)', border: '1px solid #42186E' },
+                  purple: { background: 'linear-gradient(135deg, #3C5875, #7670FF)', border: '1px solid #42186E' },
+                  green: { background: 'linear-gradient(135deg, #3C5875, #7670FF)', border: '1px solid #42186E' }
                 };
                 cardStyle = presets[admin.profileCustom.presetId] || cardStyle;
               } else if (admin.profileCustom.type === 'image' && admin.profileCustom.url) {
