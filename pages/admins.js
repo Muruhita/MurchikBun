@@ -12,7 +12,9 @@ const DEPARTMENTS_NAMES = {
   'dea': 'DEA',
   'fna': 'FNA',
   'nsb': 'NSB',
-  'trainee': 'Trainee'
+  'trainee': 'Trainee',
+  'director': 'Director',
+  'cod': 'Chief of Discipline'
 };
 
 export default function Admins() {
