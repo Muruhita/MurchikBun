@@ -228,8 +228,8 @@ export default function HighRankReportForm() {
           margin: 0;
         }
         .edit-btn {
-          background: rgba(88, 101, 242, 0.2);
-          color: #B869B8;
+          background: rgba(64, 42, 105, 0.2);
+          color: #C4C0CC;
           border: 1px solid rgba(88, 101, 242, 0.5);
           padding: 6px 12px;
           border-radius: 8px;
