@@ -135,10 +135,10 @@ export default function HighRankReportForm() {
           {/* ПРАВАЯ ЧАСТЬ — условия */}
           <div className="conditions-container">
             <div className="conditions-header">
-              <h2>📋 Условия для повышения</h2>
+              <h2> Условия для повышения</h2>
               {isAdmin && !editConditions && (
                 <button className="edit-btn" onClick={() => { setEditConditions(true); setTempConditions(conditions); }}>
-                  ✏️ Редактировать
+                   Редактировать
                 </button>
               )}
             </div>
