@@ -97,7 +97,7 @@ export default function Admins() {
 
                 <div className="admin-info">
                   <span className="admin-department">
-                    グ {DEPARTMENTS_NAMES[admin.department] || admin.department}
+                     {DEPARTMENTS_NAMES[admin.department] || admin.department}
                   </span>
                   <span className="admin-status">Администратор</span>
                 </div>
