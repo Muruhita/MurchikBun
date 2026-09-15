@@ -208,7 +208,7 @@ export default function HighRankReportForm() {
           backdrop-filter: blur(15px);
           border-radius: 20px;
           padding: 25px;
-          border: 1px solid rgba(88, 101, 242, 0.35);
+          border: 1px groove rgba(98, 37, 102, 0.35);
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
           animation: fadeIn 0.6s ease;
           position: sticky;
