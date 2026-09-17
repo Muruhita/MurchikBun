@@ -168,7 +168,7 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
 
-  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'M.FIB Forms', avatar_url: 'https://i.ytimg.com/vi/m5yUwUSBxsg/maxresdefault.jpg' });
+  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'FIB Forms', avatar_url: 'https://i.ytimg.com/vi/m5yUwUSBxsg/maxresdefault.jpg' });
 
   if (result.success) {
     try {
