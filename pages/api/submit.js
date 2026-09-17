@@ -168,7 +168,7 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
 
-  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'Majestic FIB Forms', avatar_url: 'https://i.imgur.com/AfFp7pu.png' });
+  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'M.FIB Forms', avatar_url: 'https://i.ytimg.com/vi/m5yUwUSBxsg/maxresdefault.jpg' });
 
   if (result.success) {
     try {
@@ -210,9 +210,9 @@ function getFormTitle(type, department, targetDepartment) {
   if (type === 'leave') return '🌴 Отпуск';
   if (type === 'report') return `📋 Отчёт о повышении • ${DEPARTMENTS[department]?.name || ''}`;
   if (type === 'transfer') return `🔄 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
-  if (type === 'highrank') return '📈 Отчёт на повышение (Хай Ранги)';
+  if (type === 'highrank') return '⚜️ Хай ранг отчет о повышении';
   if (type === 'resignation') return '📋 Заявление на увольнение';
-  return '📈 Запрос на повышение';
+  return '⬆️ Запрос на повышение';
 }
 
 function getFormColor(type) {
@@ -221,8 +221,8 @@ function getFormColor(type) {
     'hiring': 0x2ECC71,
     'withdrawal': 0xFF69B4,
     'reinstatement': 0x00FFFF,
-    'transferToFib': 0x00BFFF,
-    'weaponRequest': 0xFF0000,
+    'transferToFib': 0xd8e700,
+    'weaponRequest': 0xB37F20,
     'leave': 0x00FF00,
     'promotion': 0x4CAF50,
     'transfer': 0x2196F3,
@@ -271,7 +271,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '🏢 Отдел', value: dept ? `${dept.emoji} ${dept.name}` : 'Не указан', inline: false },
       { name: '📌 Текущий ранг', value: data.currentRank || 'Не указан', inline: false },
       { name: '🎯 Целевой ранг', value: data.targetRank || 'Не указан', inline: false },
-      { name: '👨‍🏫 Назначен на инструктора', value: instructorText, inline: false },
+      { name: '👨‍🏫 Назначен ли на инструктора', value: instructorText, inline: false },
       { name: '🔗 Ссылки на работу', value: data.workLinks || 'Не указаны', inline: false },
       ...baseFields
     ];
@@ -283,7 +283,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
       { name: '🏢 Текущий отдел', value: DEPARTMENTS[data.currentDepartment]?.name || data.currentDepartment || 'Не указано', inline: false },
-      { name: '🎯 Желаемый отдел', value: DEPARTMENTS[targetDepartment]?.name || targetDepartment || 'Не указано', inline: false },
+      { name: '🎯 Куда переводится', value: DEPARTMENTS[targetDepartment]?.name || targetDepartment || 'Не указано', inline: false },
       { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
     ];
 
@@ -323,7 +323,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
       { name: '🏢 Ваш отдел', value: department || 'Не указан', inline: false },
-      { name: '🔫 Предмет на выбор', value: data.item || 'Не указан', inline: false },
+      { name: '🔫 Желаемое Спец.Вооружение', value: data.item || 'Не указан', inline: false },
       ...baseFields
     ];
   }
@@ -342,7 +342,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   if (type === 'transferToFib') {
     return [
       { name: '👤 Имя Фамилия | Статик ID', value: data.fullName || 'Не указано', inline: false },
-      { name: '✅ Одобрение', value: data.approval || 'Не указано', inline: false },
+      { name: '✅ Одобрение Начальства', value: data.approval || 'Не указано', inline: false },
       { name: '📸 Доказательство ранга', value: data.rankProof || 'Не указано', inline: false },
       ...baseFields
     ];
@@ -362,7 +362,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   if (type === 'promotion') {
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '📊 Диапазон рангов', value: data.rankRange || 'Не указано', inline: false },
+      { name: '📊 С какого - на какой ранг', value: data.rankRange || 'Не указано', inline: false },
       { name: '🔗 Ссылка на отчет', value: data.reportLink || 'Не указано', inline: false },
       ...baseFields
     ];
@@ -371,7 +371,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   if (type === 'highrank') {
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '📊 Диапазон рангов', value: data.rankRange || 'Не указано', inline: false },
+      { name: '📊 С какого - на какой ранг', value: data.rankRange || 'Не указано', inline: false },
       { name: '🔗 Ссылка на работу', value: data.workLink || 'Не указано', inline: false },
       ...baseFields
     ];
