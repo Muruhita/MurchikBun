@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     
     await addToBlacklist(user.id, username, `Банворд: ${foundWord || foundWords.join(', ')}`);
     
-    return res.status(403).json({ error: `⛔ Ваша заявка содержит запрещённое слово "${foundWord}". Доступ к системе заблокирован.` });
+    return res.status(403).json({ error: `⛔ Ваша заявка содержит запрещённое слово "${foundWord}". Вы забанены.` });
   }
 
   let webhookUrl;
@@ -203,14 +203,14 @@ function getWeekKey(date) {
 function getFormTitle(type, department, targetDepartment) {
   if (type === 'claim') return '⁉️ Жалоба';
   if (type === 'hiring') return '💼 Трудоустройство в FIB';
-  if (type === 'withdrawal') return '🔑 Снятие ЧС';
+  if (type === 'withdrawal') return '🔑 Запрос на снятие ЧС';
   if (type === 'reinstatement') return '🔄 Восстановление';
   if (type === 'transferToFib') return '🏛️ Перевод в FIB';
   if (type === 'weaponRequest') return '🔫 Спец Вооружение';
   if (type === 'leave') return '🌴 Отпуск';
   if (type === 'report') return `📋 Отчёт на повышение • ${DEPARTMENTS[department]?.name || ''}`;
   if (type === 'transfer') return `🔀 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
-  if (type === 'highrank') return '⚜️ Хай ранг отчет о повышении';
+  if (type === 'highrank') return '⚜️ Хай ранг отчет на повышении';
   if (type === 'resignation') return '📛 Заявление на увольнение';
   return '⬆️ Запрос на повышение';
 }
@@ -227,7 +227,7 @@ function getFormColor(type) {
     'promotion': 0x4CAF50,
     'transfer': 0x121978,
     'report': 0x0EAB93,
-    'highrank': 0xFF69B4,
+    'highrank': 0x8907B8,
     'resignation': 0xDC3545
   };
   return colors[type] || 0x5865F2;
@@ -270,7 +270,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '🏢 Отдел', value: dept ? `${dept.emoji} ${dept.name}` : 'Не указан', inline: false },
       { name: '📌 Текущий ранг', value: data.currentRank || 'Не указан', inline: false },
-      { name: '🎯 Целевой ранг', value: data.targetRank || 'Не указан', inline: false },
+      { name: '🎯 Ранг на который повышаются', value: data.targetRank || 'Не указан', inline: false },
       { name: '👨‍🏫 Назначен ли на инструктора', value: instructorText, inline: false },
       { name: '🔗 Ссылки на проделанную работу:', value: data.workLinks || 'Не указаны', inline: false },
       ...baseFields
@@ -284,7 +284,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
       { name: '🏢 Текущий отдел', value: DEPARTMENTS[data.currentDepartment]?.name || data.currentDepartment || 'Не указано', inline: false },
       { name: '🎯 В какой отдел переводится', value: DEPARTMENTS[targetDepartment]?.name || targetDepartment || 'Не указано', inline: false },
-      { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
+      { name: '📝 Причина перевода:', value: data.reason || 'Не указано', inline: false }
     ];
 
     if (targetDepartment === 'cid') {
