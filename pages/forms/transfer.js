@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
+import SubmitOverlay from '../../components/SubmitOverlay';
 
 const DEPARTMENTS = [
   { id: 'cid', name: 'CID (Criminal Investigation)', emoji: '🚔' },
@@ -87,8 +88,6 @@ export default function TransferForm() {
     }
 
     setSubmitting(true);
-    setSuccess(false);
-
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
@@ -112,14 +111,13 @@ export default function TransferForm() {
 
       if (res.ok) {
         setSuccess(true);
-        setTimeout(() => router.push('/dashboard'), 800); // небольшая пауза, чтобы увидеть галочку
+        setTimeout(() => router.push('/dashboard'), 1400);
       } else {
         const error = await res.json();
         throw new Error(error.error || 'Ошибка отправки');
       }
     } catch (error) {
       alert('❌ Ошибка при отправке заявки: ' + error.message);
-    } finally {
       setSubmitting(false);
     }
   };
@@ -160,7 +158,7 @@ export default function TransferForm() {
             </div>
             {isSameDepartment && <div className="warning">❌ Нельзя перевестись в тот же отдел!</div>}
             {targetDept === 'fa' && !isFaRankValid && <div className="warning">❌ Для перевода в FA необходим ранг 5 или выше!</div>}
-            
+
             <div className="form-group">
               <label>Причина перевода *</label>
               <textarea required value={formData.reason} onChange={(e) => setFormData({...formData, reason: e.target.value})} rows="4" />
@@ -186,11 +184,13 @@ export default function TransferForm() {
             )}
 
             <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <span className="spinner"></span> : success ? <span className="success-check">✅</span> : '📤 Отправить заявку'}
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить заявку'}
             </button>
           </form>
         </div>
       </div>
+
+      <SubmitOverlay show={success} text="Заявка на перевод отправлена!" />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
@@ -204,12 +204,13 @@ export default function TransferForm() {
         input, textarea, select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 8px; box-sizing: border-box; }
         select option { background: #1a1a1a; }
         .warning { background: rgba(255, 0, 0, 0.1); border: 1px solid #ff4444; color: #ff8080; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
-        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; }
+        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .submit-btn:hover:not(:disabled) { background: #ccc; transform: translateY(-2px); }
-        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .submit-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+        .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #0a0a0a; }
         .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .loading-container p { color: #888; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
