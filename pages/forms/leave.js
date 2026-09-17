@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
+import SubmitOverlay from '../../components/SubmitOverlay';
 
 export default function LeaveForm() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [leaveType, setLeaveType] = useState('IC');
   const [formData, setFormData] = useState({ department: '', reason: '', startDate: '', endDate: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
 
@@ -18,13 +21,24 @@ export default function LeaveForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('/api/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'leave', leaveType, fullName: nickname, ...formData })
-    });
-    if (res.ok) { alert('✅ Заявка на отпуск отправлена!'); router.push('/dashboard'); }
-    else { const err = await res.json(); alert('❌ ' + err.error); }
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'leave', leaveType, fullName: nickname, ...formData })
+      });
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => router.push('/dashboard'), 1400);
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Ошибка');
+      }
+    } catch (error) {
+      alert('❌ ' + error.message);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -33,7 +47,7 @@ export default function LeaveForm() {
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
           <h1>🌴 Отпуск</h1>
-          
+
           <div className="type-switcher">
             <button type="button" className={leaveType === 'IC' ? 'active' : ''} onClick={() => setLeaveType('IC')}>IC Отпуск</button>
             <button type="button" className={leaveType === 'OOC' ? 'active' : ''} onClick={() => setLeaveType('OOC')}>OOC Отпуск</button>
@@ -65,10 +79,14 @@ export default function LeaveForm() {
                 <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required />
               </div>
             </div>
-            <button type="submit" className="submit-btn">📤 Отправить</button>
+            <button type="submit" className="submit-btn" disabled={submitting || success}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить'}
+            </button>
           </form>
         </div>
       </div>
+
+      <SubmitOverlay show={success} text="Заявка на отпуск отправлена!" />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
@@ -84,8 +102,11 @@ export default function LeaveForm() {
         input, textarea, select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 8px; box-sizing: border-box; }
         select option { background: #1a1a1a; }
         .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; }
-        .submit-btn:hover { background: #ccc; transform: translateY(-2px); }
+        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .submit-btn:hover:not(:disabled) { background: #ccc; transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+        .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </Layout>
