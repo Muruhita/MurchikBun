@@ -1,11 +1,14 @@
 import Layout from '../../components/Layout';
+import SubmitOverlay from '../../components/SubmitOverlay';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export default function HiringForm() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
-  
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     age: '',
     experience: '',
@@ -15,7 +18,6 @@ export default function HiringForm() {
     medicalCertificates: ''
   });
 
-  // Автозаполнение ника из профиля
   useEffect(() => {
     fetch('/api/profile')
       .then(res => res.json())
@@ -26,19 +28,23 @@ export default function HiringForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const res = await fetch('/api/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'hiring', fullName: nickname, ...formData })
-    });
-
-    if (res.ok) {
-      alert('✅ Заявка на трудоустройство отправлена!');
-      router.push('/dashboard');
-    } else {
-      const err = await res.json();
-      alert('❌ ' + err.error);
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'hiring', fullName: nickname, ...formData })
+      });
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => router.push('/dashboard'), 1400);
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Ошибка');
+      }
+    } catch (error) {
+      alert('❌ ' + error.message);
+      setSubmitting(false);
     }
   };
 
@@ -49,7 +55,7 @@ export default function HiringForm() {
         <div className="form-container">
           <h1>💼 Трудоустройство в FIB</h1>
           <form onSubmit={handleSubmit}>
-            
+
             <div className="form-group">
               <label>Имя Фамилия + Статик</label>
               <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} required placeholder="Например: Name Surname | 123456" />
@@ -90,10 +96,14 @@ export default function HiringForm() {
               <input type="url" value={formData.medicalCertificates} onChange={(e) => setFormData({...formData, medicalCertificates: e.target.value})} required placeholder="https://imgur.com/..." />
             </div>
 
-            <button type="submit" className="submit-btn">📤 Отправить заявку</button>
+            <button type="submit" className="submit-btn" disabled={submitting || success}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить заявку'}
+            </button>
           </form>
         </div>
       </div>
+
+      <SubmitOverlay show={success} text="Заявка на трудоустройство отправлена!" />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
@@ -105,8 +115,11 @@ export default function HiringForm() {
         label { display: block; color: #888; margin-bottom: 8px; }
         input, textarea, select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 8px; box-sizing: border-box; }
         select option { background: #1a1a1a; }
-        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; }
-        .submit-btn:hover { background: #ccc; transform: translateY(-2px); }
+        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .submit-btn:hover:not(:disabled) { background: #ccc; transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+        .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </Layout>
