@@ -73,7 +73,7 @@ export default async function handler(req, res) {
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
   const isActive = await isFormSubmissionActive();
-  if (!isActive) return res.status(403).json({ error: '🚫 Подача заявок временно остановлена администрацией.' });
+  if (!isActive) return res.status(403).json({ error: '🚫 Подача заявок остановлена администрацией.' });
 
   const banned = await isBlacklisted(user.id);
   if (banned) return res.status(403).json({ error: '⛔ Ваш доступ к системе заявок заблокирован.' });
@@ -201,32 +201,32 @@ function getWeekKey(date) {
 }
 
 function getFormTitle(type, department, targetDepartment) {
-  if (type === 'claim') return '📢 Жалоба';
-  if (type === 'hiring') return '📝 Трудоустройство в FIB';
-  if (type === 'withdrawal') return '🚫 Снятие ЧС';
-  if (type === 'reinstatement') return '🔁 Восстановление';
+  if (type === 'claim') return '⁉️ Жалоба';
+  if (type === 'hiring') return '💼 Трудоустройство в FIB';
+  if (type === 'withdrawal') return '🔑 Снятие ЧС';
+  if (type === 'reinstatement') return '🔄 Восстановление';
   if (type === 'transferToFib') return '🏛️ Перевод в FIB';
   if (type === 'weaponRequest') return '🔫 Спец Вооружение';
   if (type === 'leave') return '🌴 Отпуск';
-  if (type === 'report') return `📋 Отчёт о повышении • ${DEPARTMENTS[department]?.name || ''}`;
-  if (type === 'transfer') return `🔄 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
+  if (type === 'report') return `📋 Отчёт на повышение • ${DEPARTMENTS[department]?.name || ''}`;
+  if (type === 'transfer') return `🔀 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
   if (type === 'highrank') return '⚜️ Хай ранг отчет о повышении';
-  if (type === 'resignation') return '📋 Заявление на увольнение';
+  if (type === 'resignation') return '📛 Заявление на увольнение';
   return '⬆️ Запрос на повышение';
 }
 
 function getFormColor(type) {
   const colors = {
     'claim': 0xFF0000,
-    'hiring': 0x2ECC71,
-    'withdrawal': 0xFF69B4,
-    'reinstatement': 0x00FFFF,
+    'hiring': 0x2ECC95,
+    'withdrawal': 0x421278,
+    'reinstatement': 0xB8074A,
     'transferToFib': 0xd8e700,
     'weaponRequest': 0xB37F20,
     'leave': 0x00FF00,
     'promotion': 0x4CAF50,
-    'transfer': 0x2196F3,
-    'report': 0xFF9800,
+    'transfer': 0x121978,
+    'report': 0x0EAB93,
     'highrank': 0xFF69B4,
     'resignation': 0xDC3545
   };
@@ -235,7 +235,7 @@ function getFormColor(type) {
 
 function buildFields(type, department, targetDepartment, data, userId, username) {
   const baseFields = [
-    { name: '👤 Отправитель', value: `<@${userId}>`, inline: true },
+    { name: '👤 Отправитель:', value: `<@${userId}>`, inline: true },
     { name: '🆔 Discord ID', value: userId, inline: true }
   ];
 
@@ -243,8 +243,8 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     return [
       { name: '👤 Ваши Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '🚨 Имя нарушителя', value: data.offenderName || 'Не указано', inline: false },
-      { name: '📎 Доказательства', value: data.proofLink || 'Не указано', inline: false },
-      { name: '📝 Причина жалобы', value: data.reason || 'Не указана', inline: false },
+      { name: '📎 Приложенные Доказательства:', value: data.proofLink || 'Не указано', inline: false },
+      { name: '📝 Обвинения/Причина', value: data.reason || 'Не указана', inline: false },
       ...baseFields
     ];
   }
@@ -256,8 +256,8 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '💼 Опыт работы', value: data.experience || 'Не указан', inline: false },
       { name: '📚 Знание законов RP', value: data.lawKnowledge || 'Не указано', inline: false },
       { name: '📄 Скриншот паспорта', value: data.passportScreenshot || 'Не указано', inline: false },
-      { name: '🎖️ Военный билет', value: data.militaryId || 'Не указано', inline: false },
-      { name: '🩺 Мед. справки', value: data.medicalCertificates || 'Не указано', inline: false },
+      { name: '🎖️ Скриншот Военного билета', value: data.militaryId || 'Не указано', inline: false },
+      { name: '🩺 Скриншот Мед. справки', value: data.medicalCertificates || 'Не указано', inline: false },
       ...baseFields
     ];
   }
@@ -272,7 +272,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '📌 Текущий ранг', value: data.currentRank || 'Не указан', inline: false },
       { name: '🎯 Целевой ранг', value: data.targetRank || 'Не указан', inline: false },
       { name: '👨‍🏫 Назначен ли на инструктора', value: instructorText, inline: false },
-      { name: '🔗 Ссылки на работу', value: data.workLinks || 'Не указаны', inline: false },
+      { name: '🔗 Ссылки на проделанную работу:', value: data.workLinks || 'Не указаны', inline: false },
       ...baseFields
     ];
   }
@@ -283,7 +283,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
       { name: '🏢 Текущий отдел', value: DEPARTMENTS[data.currentDepartment]?.name || data.currentDepartment || 'Не указано', inline: false },
-      { name: '🎯 Куда переводится', value: DEPARTMENTS[targetDepartment]?.name || targetDepartment || 'Не указано', inline: false },
+      { name: '🎯 В какой отдел переводится', value: DEPARTMENTS[targetDepartment]?.name || targetDepartment || 'Не указано', inline: false },
       { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
     ];
 
@@ -312,8 +312,8 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   if (type === 'withdrawal') {
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '🚨 Причина ЧС', value: data.reason || 'Не указана', inline: false },
-      { name: '📅 Дата выдачи ЧС', value: data.date || 'Не указана', inline: false },
+      { name: '🚨 Причина ЧС', value: data.reason || 'Неизвестна', inline: false },
+      { name: '📅 Дата выдачи ЧС', value: data.date || 'Неизвестна', inline: false },
       ...baseFields
     ];
   }
@@ -363,7 +363,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📊 С какого - на какой ранг', value: data.rankRange || 'Не указано', inline: false },
-      { name: '🔗 Ссылка на отчет', value: data.reportLink || 'Не указано', inline: false },
+      { name: '🔗 Ссылка на одобренный отчет:', value: data.reportLink || 'Не указано', inline: false },
       ...baseFields
     ];
   }
@@ -372,7 +372,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📊 С какого - на какой ранг', value: data.rankRange || 'Не указано', inline: false },
-      { name: '🔗 Ссылка на работу', value: data.workLink || 'Не указано', inline: false },
+      { name: '🔗 Ссылка на проделанную работу:', value: data.workLink || 'Не указано', inline: false },
       ...baseFields
     ];
   }
@@ -380,7 +380,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   if (type === 'resignation') {
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '📸 Скриншот планшета', value: data.screenshot || 'Не указано', inline: false },
+      { name: '📸 Скриншот профиля в планшете', value: data.screenshot || 'Не указано', inline: false },
       ...baseFields
     ];
   }
