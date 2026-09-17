@@ -23,6 +23,7 @@ export default function ReportForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     department: '',
@@ -76,10 +77,17 @@ export default function ReportForm() {
           workLinks: formData.workLinks
         })
       });
-      if (res.ok) { alert('✅ Отчёт успешно отправлен!'); router.push('/dashboard'); }
-      else { const err = await res.json(); throw new Error(err.error || 'Ошибка'); }
-    } catch (error) { alert('❌ ' + error.message); }
-    finally { setSubmitting(false); }
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => router.push('/dashboard'), 1400);
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Ошибка');
+      }
+    } catch (error) {
+      alert('❌ ' + error.message);
+      setSubmitting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="loading-spinner"></div><p>Загрузка...</p></div>;
@@ -138,12 +146,31 @@ export default function ReportForm() {
               <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
             </div>
 
-            <button type="submit" className="submit-btn" disabled={submitting}>
-              {submitting ? '⏳ Отправка...' : '📤 Отправить отчёт'}
+            <button type="submit" className="submit-btn" disabled={submitting || success}>
+              {submitting ? (
+                <>
+                  <span className="btn-spinner" />
+                  Отправка...
+                </>
+              ) : '📤 Отправить отчёт'}
             </button>
           </form>
         </div>
       </div>
+
+      {/* === FULL-SCREEN SUCCESS OVERLAY === */}
+      {success && (
+        <div className="success-overlay">
+          <div className="success-box">
+            <svg className="checkmark-svg" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="25" fill="none" />
+              <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+            <p className="success-text">Отчёт успешно отправлен!</p>
+            <p className="success-subtext">Перенаправление в панель...</p>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
@@ -156,13 +183,146 @@ export default function ReportForm() {
         input, textarea, select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 8px; box-sizing: border-box; }
         select option { background: #1a1a1a; }
         .disabled-input { opacity: 0.5; cursor: not-allowed; }
-        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; }
-        .submit-btn:hover { background: #ccc; transform: translateY(-2px); }
+
+        /* === Кнопка === */
+        .submit-btn {
+          width: 100%;
+          padding: 15px;
+          background: #fff;
+          color: #000;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 16px;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+        .submit-btn:hover:not(:disabled) { background: #ccc; transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+
+        .btn-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(0, 0, 0, 0.15);
+          border-top-color: #000;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+          display: inline-block;
+        }
+
+        /* === Loading screen === */
         .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #0a0a0a; }
         .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .loading-container p { color: #888; }
+
+        /* ============================================================
+           FULL-SCREEN SUCCESS OVERLAY
+           ============================================================ */
+        .success-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(5, 5, 5, 0.78);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          animation: overlayIn 0.35s ease forwards;
+        }
+
+        .success-box {
+          background: linear-gradient(145deg, rgba(22, 26, 22, 0.98), rgba(12, 16, 12, 0.98));
+          border: 1px solid rgba(76, 175, 80, 0.4);
+          border-radius: 24px;
+          padding: 48px 72px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.6),
+            0 0 80px rgba(76, 175, 80, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+          animation: boxIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          transform-origin: center;
+        }
+
+        .checkmark-svg {
+          width: 96px;
+          height: 96px;
+          margin-bottom: 24px;
+          filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.5));
+        }
+        .checkmark-svg circle {
+          stroke: #4CAF50;
+          stroke-width: 2;
+          stroke-dasharray: 166;
+          stroke-dashoffset: 166;
+          animation: strokeCircle 0.7s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .checkmark-svg path {
+          stroke: #4CAF50;
+          stroke-width: 3.5;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          fill: none;
+          stroke-dasharray: 48;
+          stroke-dashoffset: 48;
+          animation: strokeCheck 0.45s cubic-bezier(0.65, 0, 0.45, 1) 0.55s forwards;
+        }
+
+        .success-text {
+          color: #4CAF50;
+          font-size: 20px;
+          font-weight: 700;
+          margin: 0 0 6px 0;
+          letter-spacing: 0.3px;
+          opacity: 0;
+          animation: textIn 0.45s ease 0.85s forwards;
+        }
+        .success-subtext {
+          color: #777;
+          font-size: 13px;
+          margin: 0;
+          opacity: 0;
+          animation: textIn 0.45s ease 1s forwards;
+        }
+
+        /* === KEYFRAMES === */
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes overlayIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes boxIn {
+          0% { transform: scale(0.6) translateY(30px); opacity: 0; }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes strokeCircle {
+          to { stroke-dashoffset: 0; }
+        }
+        @keyframes strokeCheck {
+          to { stroke-dashoffset: 0; }
+        }
+        @keyframes textIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Мобильная адаптация === */
+        @media (max-width: 500px) {
+          .success-box { padding: 36px 40px; border-radius: 20px; }
+          .checkmark-svg { width: 72px; height: 72px; margin-bottom: 18px; }
+          .success-text { font-size: 17px; }
+          .success-subtext { font-size: 12px; }
+        }
       `}</style>
     </Layout>
   );
