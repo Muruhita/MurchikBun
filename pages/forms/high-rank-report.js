@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
+import SubmitOverlay from '../../components/SubmitOverlay';
 
 const RANK_OPTIONS = [
   '1-2 ранг', '2-3 ранг', '3-4 ранг', '4-5 ранг', '5-6 ранг',
@@ -20,6 +21,7 @@ export default function HighRankReportForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -28,7 +30,6 @@ export default function HighRankReportForm() {
     workLink: ''
   });
 
-  // Условия повышения
   const [conditions, setConditions] = useState('');
   const [editConditions, setEditConditions] = useState(false);
   const [tempConditions, setTempConditions] = useState('');
@@ -72,10 +73,17 @@ export default function HighRankReportForm() {
           workLink: formData.workLink
         })
       });
-      if (res.ok) { alert('✅ Отчёт успешно отправлен!'); router.push('/dashboard'); }
-      else { const err = await res.json(); throw new Error(err.error || 'Ошибка'); }
-    } catch (error) { alert('❌ ' + error.message); }
-    finally { setSubmitting(false); }
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => router.push('/dashboard'), 1400);
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Ошибка');
+      }
+    } catch (error) {
+      alert('❌ ' + error.message);
+      setSubmitting(false);
+    }
   };
 
   const saveConditions = async () => {
@@ -103,7 +111,6 @@ export default function HighRankReportForm() {
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
 
         <div className="layout-row">
-          {/* ЛЕВАЯ ЧАСТЬ — форма */}
           <div className="form-container">
             <h1>⚜️ Отчёт на повышение (Хай Ранги)</h1>
             <form onSubmit={handleSubmit}>
@@ -126,13 +133,12 @@ export default function HighRankReportForm() {
                 <label>Discord ID</label>
                 <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
               </div>
-              <button type="submit" className="submit-btn" disabled={submitting}>
-                {submitting ? '⏳ Отправка...' : '📤 Отправить отчёт'}
+              <button type="submit" className="submit-btn" disabled={submitting || success}>
+                {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить отчёт'}
               </button>
             </form>
           </div>
 
-          {/* ПРАВАЯ ЧАСТЬ — условия */}
           <div className="conditions-container">
             <div className="conditions-header">
               <h2> Условия для повышения</h2>
@@ -176,6 +182,8 @@ export default function HighRankReportForm() {
           </div>
         </div>
       </div>
+
+      <SubmitOverlay show={success} text="Отчёт отправлен!" />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
@@ -315,13 +323,16 @@ export default function HighRankReportForm() {
         input, textarea, select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 8px; box-sizing: border-box; }
         select option { background: #1a1a1a; }
         .disabled-input { opacity: 0.5; cursor: not-allowed; }
-        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; }
-        .submit-btn:hover { background: #ccc; transform: translateY(-2px); }
+        .submit-btn { width: 100%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .submit-btn:hover:not(:disabled) { background: #ccc; transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+        .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
 
         .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #0a0a0a; }
         .loading-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .loading-container p { color: #888; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 900px) {
