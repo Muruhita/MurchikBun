@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
 import BanOverlay from '../../components/BanOverlay';
+import ProgressBar from '../../components/ProgressBar';
 
 export default function LeaveForm() {
   const router = useRouter();
@@ -12,14 +13,12 @@ export default function LeaveForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 🚫 Бан
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
 
   const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
 
-  // 🔒 Проверка бана при загрузке — только через /api/profile
   useEffect(() => {
     fetch('/api/profile')
       .then(res => res.json())
@@ -50,7 +49,6 @@ export default function LeaveForm() {
         return;
       }
 
-      // 🚫 Бан при отправке
       if (res.status === 403) {
         const err = await res.json();
         if (err.banned) {
@@ -73,6 +71,9 @@ export default function LeaveForm() {
 
   return (
     <Layout>
+      {/* 📊 Прогресс-полоска — показывается пока submitting=true */}
+      <ProgressBar show={submitting} />
+
       <div className="form-page">
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
