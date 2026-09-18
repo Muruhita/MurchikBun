@@ -50,7 +50,11 @@ async function sendToDiscord(webhookUrl, data, retries = 3) {
   let lastError = null;
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await fetch(safeWebhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const response = await fetch(safeWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
       if (response.ok) return { success: true, status: response.status };
       if (response.status === 429) {
         const retryAfter = parseInt(response.headers.get('Retry-After')) || 5;
@@ -77,7 +81,7 @@ export default async function handler(req, res) {
   const isActive = await isFormSubmissionActive();
   if (!isActive) return res.status(403).json({ error: '🚫 Подача заявок остановлена администрацией.' });
 
-  // 🚫 Проверка бана — возвращаем reason и until для BanOverlay
+  // 🚫 Проверка бана
   const banInfo = await getBanInfo(user.id);
   if (banInfo.banned) {
     return res.status(403).json({
@@ -91,14 +95,14 @@ export default async function handler(req, res) {
   if (spamCheck.isSpam) return res.status(429).json({ error: spamCheck.message });
 
   const { type, department, targetDepartment, ...rawFormData } = req.body;
-  // 🧼 Санитайз: убираем HTML-теги, control-символы, @everyone, <@id>
+  // 🧼 Санитайз
   const formData = sanitizeObject(rawFormData, 1000);
   const userId = user.id;
   const username = user.username;
 
   const allText = Object.values(formData).filter(val => typeof val === 'string').join(' ');
 
-  // 🚫 Банворды — тоже отдаём banned:true + reason
+  // 🚫 Банворды
   if (containsBadWords(allText)) {
     const foundWords = findAllBadWords(allText);
     const foundWord = findBadWord(allText);
@@ -185,7 +189,17 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
 
-  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'FIB Forms', avatar_url: 'https://i.ytimg.com/vi/m5yUwUSBxsg/maxresdefault.jpg' });
+  // 🖼️ Если есть скриншот с imgbb — показываем картинку прямо в embed
+  if (formData.screenshot && formData.screenshot.startsWith('https://i.ibb.co/')) {
+    embed.image = { url: formData.screenshot };
+  }
+
+  const result = await sendToDiscord(webhookUrl, {
+    content: roleMentions.trim() || undefined,
+    embeds: [embed],
+    username: 'FIB Forms',
+    avatar_url: 'https://i.ytimg.com/vi/m5yUwUSBxsg/maxresdefault.jpg'
+  });
 
   if (result.success) {
     try {
@@ -227,7 +241,7 @@ function getFormTitle(type, department, targetDepartment) {
   if (type === 'leave') return '🌴 Отпуск';
   if (type === 'report') return `📋 Отчёт на повышение • ${DEPARTMENTS[department]?.name || ''}`;
   if (type === 'transfer') return `🔀 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
-  if (type === 'highrank') return '⚜️ Хай ранг отчет на повышение';
+  if (type === 'highrank') return '⚜️ Хай ранг отчет на повышении';
   if (type === 'resignation') return '📛 Заявление на увольнение';
   return '⬆️ Запрос на повышение';
 }
@@ -364,14 +378,22 @@ function buildFields(type, department, targetDepartment, data, userId, username)
   }
 
   if (type === 'leave') {
-    return [
+    const fields = [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
+      { name: '📋 Тип отпуска', value: data.leaveType === 'OOC' ? 'OOC Отпуск' : 'IC Отпуск', inline: false },
       { name: '🏢 Отдел', value: data.department || 'Не указан', inline: false },
       { name: '📝 Причина', value: data.reason || 'Не указана', inline: false },
       { name: '📅 Начало', value: data.startDate || 'Не указано', inline: false },
-      { name: '📅 Конец', value: data.endDate || 'Не указано', inline: false },
-      ...baseFields
+      { name: '📅 Конец', value: data.endDate || 'Не указано', inline: false }
     ];
+
+    // 🖼️ Если есть скриншот (не используется как embed.image) — добавим ссылкой
+    if (data.screenshot && !data.screenshot.startsWith('https://i.ibb.co/')) {
+      fields.push({ name: '🖼️ Скриншот', value: data.screenshot, inline: false });
+    }
+
+    fields.push(...baseFields);
+    return fields;
   }
 
   if (type === 'promotion') {
