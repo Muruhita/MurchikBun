@@ -107,7 +107,7 @@ export default function Layout({ children }) {
           <span className="legal-icon">📓</span> ToS
         </a>
         <a href="/geh" className="legal-link" title="Политика конфиденциальности">
-          <span className="legal-icon">📃</span> Privacy P
+          <span className="legal-icon">📃</span> Privacy
         </a>
       </div>
 
