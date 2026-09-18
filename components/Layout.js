@@ -89,6 +89,16 @@ export default function Layout({ children }) {
         <span className="footer-author">Автор: @muruh1ta</span>
       </footer>
 
+      {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
+      <div className="legal-links">
+        <a href="/leh" className="legal-link" title="Условия пользования">
+          <span className="legal-icon">📜</span> ToS
+        </a>
+        <a href="/geh" className="legal-link" title="Политика конфиденциальности">
+          <span className="legal-icon">🔒</span> Privacy P
+        </a>
+      </div>
+
       <style jsx>{`
         .app-container {
           min-height: 100vh;
@@ -238,6 +248,64 @@ export default function Layout({ children }) {
         .footer-author {
           color: #888;
           font-size: 12px;
+        }
+
+        /* 📌 Кнопки ToS и Privacy P справа-снизу */
+        .legal-links {
+          position: fixed;
+          bottom: 70px;
+          right: 20px;
+          z-index: 99;
+          display: flex;
+          gap: 8px;
+          animation: legalIn 0.6s ease 0.3s both;
+        }
+
+        .legal-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background: rgba(20, 20, 20, 0.85);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(168, 85, 247, 0.35);
+          border-radius: 20px;
+          color: #C4A5F0;
+          text-decoration: none;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          transition: all 0.25s ease;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .legal-link:hover {
+          background: rgba(88, 101, 242, 0.15);
+          border-color: #A855F7;
+          color: #fff;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
+        }
+
+        .legal-icon {
+          font-size: 13px;
+        }
+
+        @keyframes legalIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 500px) {
+          .legal-links {
+            bottom: 65px;
+            right: 10px;
+            gap: 6px;
+          }
+          .legal-link {
+            padding: 5px 10px;
+            font-size: 11px;
+          }
         }
       `}</style>
     </div>
