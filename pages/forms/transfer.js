@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 const DEPARTMENTS = [
   { id: 'cid', name: 'CID (Criminal Investigation)', emoji: '🚔' },
@@ -24,19 +25,15 @@ export default function TransferForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
   const [formData, setFormData] = useState({
-    fullName: '',
-    rank: '',
-    currentDepartment: '',
-    targetDepartment: '',
-    reason: '',
-    cidExperience: '',
-    cidExamples: '',
-    cidServers: '',
-    cidKnowledge: '',
-    cidLawKnowledge: '',
-    faRules: '',
-    faPrevious: ''
+    fullName: '', rank: '', currentDepartment: '', targetDepartment: '', reason: '',
+    cidExperience: '', cidExamples: '', cidServers: '', cidKnowledge: '', cidLawKnowledge: '',
+    faRules: '', faPrevious: ''
   });
 
   const targetDept = formData.targetDepartment;
@@ -64,20 +61,19 @@ export default function TransferForm() {
       if (profileData.department) {
         setFormData(prev => ({ ...prev, currentDepartment: profileData.department }));
       }
+      if (profileData.banned) {
+        setBanned(true);
+        setBanReason(profileData.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(profileData.banUntil || null);
+      }
       setLoading(false);
     });
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSameDepartment) {
-      alert('❌ Нельзя перевестись в тот же отдел!');
-      return;
-    }
-    if (!isFaRankValid) {
-      alert('❌ Для перевода в FA необходим ранг 5 или выше!');
-      return;
-    }
+    if (isSameDepartment) { alert('❌ Нельзя перевестись в тот же отдел!'); return; }
+    if (!isFaRankValid) { alert('❌ Для перевода в FA необходим ранг 5 или выше!'); return; }
     if (showCidFields && (!formData.cidExperience || !formData.cidExamples || !formData.cidServers || !formData.cidKnowledge || !formData.cidLawKnowledge)) {
       alert('❌ Пожалуйста, заполните все дополнительные вопросы для CID!');
       return;
@@ -112,12 +108,25 @@ export default function TransferForm() {
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const error = await res.json();
-        throw new Error(error.error || 'Ошибка отправки');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка отправки');
     } catch (error) {
-      alert('❌ Ошибка при отправке заявки: ' + error.message);
+      alert('❌ ' + error.message);
       setSubmitting(false);
     }
   };
@@ -183,14 +192,15 @@ export default function TransferForm() {
               </>
             )}
 
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить заявку'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить заявку'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Заявка на перевод отправлена!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
