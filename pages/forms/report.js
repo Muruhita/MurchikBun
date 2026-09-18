@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 const DEPARTMENTS = [
   { id: 'ib', name: 'IB (Intelligence Branch)', emoji: '🕵️' },
@@ -25,6 +26,11 @@ export default function ReportForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
   const [formData, setFormData] = useState({
     fullName: '',
     department: '',
@@ -53,6 +59,11 @@ export default function ReportForm() {
       if (profileData.department) {
         setFormData(prev => ({ ...prev, department: profileData.department }));
       }
+      if (profileData.banned) {
+        setBanned(true);
+        setBanReason(profileData.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(profileData.banUntil || null);
+      }
       setLoading(false);
     });
   }, []);
@@ -78,13 +89,27 @@ export default function ReportForm() {
           workLinks: formData.workLinks
         })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -147,14 +172,15 @@ export default function ReportForm() {
               <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
             </div>
 
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить отчёт'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить отчёт'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Отчёт успешно отправлен!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
