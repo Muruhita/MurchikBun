@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
 import BanOverlay from '../../components/BanOverlay';
+import ProgressBar from '../../components/ProgressBar';
+import ImageUploader from '../../components/ImageUploader';
 
 export default function ResignationForm() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function ResignationForm() {
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', screenshot: '' });
 
+  // 🚫 Бан
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
@@ -35,11 +38,15 @@ export default function ResignationForm() {
         setBanUntil(profileData.banUntil || null);
       }
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.screenshot) {
+      alert('⚠️ Загрузите скриншот планшета!');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/submit', {
@@ -82,6 +89,8 @@ export default function ResignationForm() {
 
   return (
     <Layout>
+      <ProgressBar show={submitting} />
+
       <div className="form-page">
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
@@ -89,18 +98,42 @@ export default function ResignationForm() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Имя Фамилия + Статик *</label>
-              <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} placeholder="Например: Name Surname 123456" />
+              <input
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="Например: Name Surname 123456"
+              />
             </div>
-            <div className="form-group">
-              <label>Скриншот планшета *</label>
-              <textarea required value={formData.screenshot} onChange={(e) => setFormData({...formData, screenshot: e.target.value})} rows="4" placeholder="Вставьте ссылку на скриншот планшета..." />
-            </div>
+
+            {/* 🖼️ Загрузка скриншота через imgbb */}
+            <ImageUploader
+              label="Скриншот планшета *"
+              value={formData.screenshot}
+              onChange={(url) => setFormData(prev => ({ ...prev, screenshot: url }))}
+            />
+
             <div className="form-group">
               <label>Discord ID</label>
-              <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
+              <input
+                type="text"
+                value={`${user.username} (${user.id})`}
+                disabled
+                className="disabled-input"
+              />
             </div>
-            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить заявление'}
+
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={submitting || success || banned}
+            >
+              {submitting
+                ? <><span className="btn-spinner" />Отправка...</>
+                : banned
+                  ? '🚫 Доступ заблокирован'
+                  : '📤 Отправить заявление'}
             </button>
           </form>
         </div>
