@@ -1,25 +1,32 @@
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export default function ClaimForm() {
   const router = useRouter();
   const [myNickname, setMyNickname] = useState('');
-  const [formData, setFormData] = useState({
-    offenderName: '',
-    proofLink: '',
-    reason: ''
-  });
+  const [formData, setFormData] = useState({ offenderName: '', proofLink: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
 
   useEffect(() => {
     fetch('/api/profile')
       .then(res => res.json())
       .then(data => {
         if (data.nickname) setMyNickname(data.nickname);
-      });
+        if (data.banned) {
+          setBanned(true);
+          setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(data.banUntil || null);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -31,13 +38,27 @@ export default function ClaimForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'claim', fullName: myNickname, ...formData })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -51,59 +72,31 @@ export default function ClaimForm() {
         <div className="form-container">
           <h1>📢 Жалоба</h1>
           <form onSubmit={handleSubmit}>
-
             <div className="form-group">
               <label>Ваши Имя Фамилия + Статик</label>
-              <input
-                type="text"
-                value={myNickname}
-                onChange={(e) => setMyNickname(e.target.value)}
-                required
-                placeholder="Введите ваше Имя Фамилия + Статик"
-              />
+              <input type="text" value={myNickname} onChange={(e) => setMyNickname(e.target.value)} required placeholder="Введите ваше Имя Фамилия + Статик" />
             </div>
-
             <div className="form-group">
               <label>Имя Фамилия + Статик нарушителя</label>
-              <input
-                type="text"
-                value={formData.offenderName}
-                onChange={(e) => setFormData({...formData, offenderName: e.target.value})}
-                required
-                placeholder="Например: Ivan Petrov | 123456"
-              />
+              <input type="text" value={formData.offenderName} onChange={(e) => setFormData({...formData, offenderName: e.target.value})} required placeholder="Например: Ivan Petrov | 123456" />
             </div>
-
             <div className="form-group">
               <label>Доказательства (ссылка)</label>
-              <input
-                type="url"
-                value={formData.proofLink}
-                onChange={(e) => setFormData({...formData, proofLink: e.target.value})}
-                required
-                placeholder="https://imgur.com/..."
-              />
+              <input type="url" value={formData.proofLink} onChange={(e) => setFormData({...formData, proofLink: e.target.value})} required placeholder="https://imgur.com/..." />
             </div>
-
             <div className="form-group">
               <label>Причина жалобы</label>
-              <textarea
-                value={formData.reason}
-                onChange={(e) => setFormData({...formData, reason: e.target.value})}
-                required
-                rows="4"
-                placeholder="Например: Он закафал меня без причины"
-              />
+              <textarea value={formData.reason} onChange={(e) => setFormData({...formData, reason: e.target.value})} required rows="4" placeholder="Например: Он закафал меня без причины" />
             </div>
-
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить жалобу'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить жалобу'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Жалоба отправлена!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
