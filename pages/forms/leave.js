@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
 import BanOverlay from '../../components/BanOverlay';
-import ProgressBar from '../../components/ProgressBar';
-import ImageUploader from '../../components/ImageUploader';
+import MultiImageUploader from '../../components/MultiImageUploader';
 
 export default function LeaveForm() {
   const router = useRouter();
@@ -15,12 +14,11 @@ export default function LeaveForm() {
     reason: '',
     startDate: '',
     endDate: '',
-    screenshot: ''
+    screenshots: []              // 🖼️ массив URL
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 🚫 Бан
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
@@ -79,102 +77,53 @@ export default function LeaveForm() {
 
   return (
     <Layout>
-      <ProgressBar show={submitting} />
-
       <div className="form-page">
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
           <h1>🌴 Отпуск</h1>
 
           <div className="type-switcher">
-            <button
-              type="button"
-              className={leaveType === 'IC' ? 'active' : ''}
-              onClick={() => setLeaveType('IC')}
-            >
-              IC Отпуск
-            </button>
-            <button
-              type="button"
-              className={leaveType === 'OOC' ? 'active' : ''}
-              onClick={() => setLeaveType('OOC')}
-            >
-              OOC Отпуск
-            </button>
+            <button type="button" className={leaveType === 'IC' ? 'active' : ''} onClick={() => setLeaveType('IC')}>IC Отпуск</button>
+            <button type="button" className={leaveType === 'OOC' ? 'active' : ''} onClick={() => setLeaveType('OOC')}>OOC Отпуск</button>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Имя Фамилия + Статик</label>
-              <input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                required
-                placeholder="Например: Sanya Suspect 270726"
-              />
+              <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} required placeholder="Например: Sanya Suspect 270726" />
             </div>
-
             <div className="form-group">
               <label>Отдел</label>
-              <select
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                required
-              >
+              <select value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} required>
                 <option value="">-- Выберите отдел --</option>
                 {departments.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
-
             <div className="form-group">
               <label>Причина</label>
-              <textarea
-                value={formData.reason}
-                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                required
-                rows="4"
-              />
+              <textarea value={formData.reason} onChange={(e) => setFormData({...formData, reason: e.target.value})} required rows="4" />
             </div>
-
             <div className="form-group date-row">
               <div>
                 <label>Начало отпуска</label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  required
-                />
+                <input type="date" value={formData.startDate} onChange={(e) => setFormData({...formData, startDate: e.target.value})} required />
               </div>
               <div>
                 <label>Конец отпуска</label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  required
-                />
+                <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required />
               </div>
             </div>
 
-            {/* 🖼️ Загрузка скриншота через imgbb */}
-            <ImageUploader
-              label="Скриншот (подтверждение)"
-              value={formData.screenshot}
-              onChange={(url) => setFormData(prev => ({ ...prev, screenshot: url }))}
+            {/* 🖼️ Мульти-загрузка скриншотов */}
+            <MultiImageUploader
+              label="Скриншоты (необязательно)"
+              value={formData.screenshots}
+              onChange={(urls) => setFormData(prev => ({ ...prev, screenshots: urls }))}
+              max={5}
             />
 
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={submitting || success || banned}
-            >
-              {submitting
-                ? <><span className="btn-spinner" />Отправка...</>
-                : banned
-                  ? '🚫 Доступ заблокирован'
-                  : '📤 Отправить'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить'}
             </button>
           </form>
         </div>
