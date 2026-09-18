@@ -27,7 +27,6 @@ export default function Leh() {
             <h2>2. Кто может пользоваться</h2>
             <ul>
               <li>Игроки игрового сервера Boston Majestic RP</li>
-              <li>Лица старше 13 лет (в соответствии с правилами Discord)</li>
               <li>Пользователи с действующим Discord-аккаунтом</li>
             </ul>
           </section>
