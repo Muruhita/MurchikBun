@@ -3,6 +3,7 @@ import { addToBlacklist } from '../../lib/blacklist';
 import { getBanInfo } from '../../lib/ban-utils';
 import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwords';
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
+import { sanitizeObject } from '../../lib/sanitize';
 import redis from '../../lib/redis';
 
 const DEPARTMENTS = {
@@ -76,7 +77,7 @@ export default async function handler(req, res) {
   const isActive = await isFormSubmissionActive();
   if (!isActive) return res.status(403).json({ error: '🚫 Подача заявок остановлена администрацией.' });
 
-  // 🚫 Проверка бана — теперь с reason и until для BanOverlay
+  // 🚫 Проверка бана — возвращаем reason и until для BanOverlay
   const banInfo = await getBanInfo(user.id);
   if (banInfo.banned) {
     return res.status(403).json({
@@ -89,7 +90,9 @@ export default async function handler(req, res) {
   const spamCheck = await checkSpam(user.id, user.username);
   if (spamCheck.isSpam) return res.status(429).json({ error: spamCheck.message });
 
-  const { type, department, targetDepartment, ...formData } = req.body;
+  const { type, department, targetDepartment, ...rawFormData } = req.body;
+  // 🧼 Санитайз: убираем HTML-теги, control-символы, @everyone, <@id>
+  const formData = sanitizeObject(rawFormData, 1000);
   const userId = user.id;
   const username = user.username;
 
@@ -224,7 +227,7 @@ function getFormTitle(type, department, targetDepartment) {
   if (type === 'leave') return '🌴 Отпуск';
   if (type === 'report') return `📋 Отчёт на повышение • ${DEPARTMENTS[department]?.name || ''}`;
   if (type === 'transfer') return `🔀 Перевод в ${DEPARTMENTS[targetDepartment]?.name || targetDepartment || ''}`;
-  if (type === 'highrank') return '⚜️ Хай ранг отчет на повышении';
+  if (type === 'highrank') return '⚜️ Хай ранг отчет на повышение';
   if (type === 'resignation') return '📛 Заявление на увольнение';
   return '⬆️ Запрос на повышение';
 }
