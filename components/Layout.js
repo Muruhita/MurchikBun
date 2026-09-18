@@ -104,10 +104,10 @@ export default function Layout({ children }) {
       {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
       <div className="legal-links">
         <a href="/leh" className="legal-link" title="Условия пользования">
-          <span className="legal-icon">📜</span> ToS
+          <span className="legal-icon">📓</span> ToS
         </a>
         <a href="/geh" className="legal-link" title="Политика конфиденциальности">
-          <span className="legal-icon">🔒</span> Privacy P
+          <span className="legal-icon">📃</span> Privacy P
         </a>
       </div>
 
