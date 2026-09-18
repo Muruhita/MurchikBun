@@ -9,7 +9,6 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState('');
-  const [unreadSupport, setUnreadSupport] = useState(0);
 
   useEffect(() => {
     fetch('/api/me')
@@ -32,22 +31,6 @@ export default function Layout({ children }) {
         if (data.announcement) setAnnouncement(data.announcement);
       })
       .catch(() => {});
-  }, []);
-
-  // 🎧 Счётчик непрочитанных в поддержке
-  useEffect(() => {
-    const fetchUnread = () => {
-      fetch('/api/support/unread')
-        .then(res => res.json())
-        .then(data => {
-          const total = (data.unreadUser || 0) + (data.unreadAdmin || 0);
-          setUnreadSupport(total);
-        })
-        .catch(() => {});
-    };
-    fetchUnread();
-    const id = setInterval(fetchUnread, 60000); // раз в минуту
-    return () => clearInterval(id);
   }, []);
 
   const tabs = [
@@ -84,9 +67,6 @@ export default function Layout({ children }) {
             title="Тех. поддержка"
           >
             🎧
-            {unreadSupport > 0 && (
-              <span className="support-badge">{unreadSupport > 9 ? '9+' : unreadSupport}</span>
-            )}
           </button>
 
           {user && <span className="nav-username">{user.username}</span>}
@@ -243,28 +223,6 @@ export default function Layout({ children }) {
           background: rgba(88, 101, 242, 0.35);
           border-color: #A855F7;
           color: #fff;
-        }
-        .support-badge {
-          position: absolute;
-          top: -6px;
-          right: -6px;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 4px;
-          background: #ff3b3b;
-          color: #fff;
-          font-size: 10px;
-          font-weight: 800;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 2px solid #1a1a1a;
-          animation: badgePulse 1.8s ease-in-out infinite;
-        }
-        @keyframes badgePulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
-          50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
         }
 
         .announcement-banner {
