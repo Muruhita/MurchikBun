@@ -1,16 +1,15 @@
-import Layout from '../components/Layout';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 
 const AUTHOR = {
   username: 'muruh1ta',
   displayName: 'Mura Kiratu',
   discordId: '1018113109346504744',
   email: 'murkilanki@gmail.com',
-  // 🔗 Вставь сюда свою ссылку на аватар (например, с imgbb или Discord CDN)
-  avatar: 'https://i.pinimg.com/736x/57/48/10/5748107f528598de8e909b60ff7324aa.jpg',
+  avatar: 'https://cdn.discordapp.com/avatars/1018113109346504744/0b9b2f95e6a2b4b8a1b5a2b0b2b2b2b2.png?size=512',
   roles: ['Админ', 'Автор сия бота'],
-  bio: 'Создатель и хранитель FIB Forms.'
+  bio: 'Создатель и хранитель FIB Forms. Пишу код ночами, чтобы ваши заявки летали в Discord быстрее, чем сакура падает с ветки.'
 };
 
 export default function AuthorPage() {
@@ -19,10 +18,11 @@ export default function AuthorPage() {
   const [copied, setCopied] = useState(false);
   const [glitching, setGlitching] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // 🌸 Лепестки
+  // 🌸 Лепестки сакуры
   useEffect(() => {
-    const generated = Array.from({ length: 40 }).map((_, i) => ({
+    const generated = Array.from({ length: 45 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100,
       delay: Math.random() * 12,
@@ -32,6 +32,7 @@ export default function AuthorPage() {
       opacity: 0.35 + Math.random() * 0.55
     }));
     setPetals(generated);
+    setTimeout(() => setMounted(true), 60);
   }, []);
 
   // 🎬 Глитч
@@ -52,8 +53,14 @@ export default function AuthorPage() {
   };
 
   return (
-    <Layout>
-      <div className="author-page">
+    <>
+      <Head>
+        <title>About the Author · Mura Kiratu</title>
+        <meta name="description" content="Об авторе Discord-бота FIB Forms" />
+      </Head>
+
+      <div className={`author-page ${mounted ? 'mounted' : ''}`}>
+        {/* 🌸 Лепестки */}
         <div className="sakura-layer">
           {petals.map(p => (
             <div
@@ -72,178 +79,209 @@ export default function AuthorPage() {
           ))}
         </div>
 
+        {/* ✨ Ауры */}
         <div className="aura aura-1" />
         <div className="aura aura-2" />
         <div className="aura aura-3" />
         <div className="aura aura-4" />
 
+        {/* 🈴 Углы */}
         <div className="corner-deco corner-tl">作者</div>
         <div className="corner-deco corner-tr">桜</div>
         <div className="corner-deco corner-bl">夢</div>
         <div className="corner-deco corner-br">未来</div>
 
-        {/* 🌟 HERO */}
-        <div className="page-hero">
-          <div className="hero-jp">作者について</div>
-          <h1 className="hero-title">
-            <span className="title-accent">About</span> the Author
-          </h1>
-          <div className="hero-underline" />
-        </div>
+        {/* 🔙 Кнопка назад — фиксированная в левом верхнем */}
+        <button
+          className="back-float"
+          onClick={() => router.push('/dashboard')}
+          title="Назад"
+        >
+          <span className="back-arrow">←</span>
+          <span className="back-text">На главную</span>
+        </button>
 
-        {/* 🎴 Карточка */}
-        <div className="author-card">
-          <div className="card-top-strip">
-            <span>開発者</span>
-            <span>·</span>
-            <span>Developer</span>
-            <span>·</span>
-            <span>Разработчик</span>
+        {/* 📦 Контент */}
+        <div className="content-wrap">
+
+          {/* 🌟 HERO */}
+          <div className="page-hero">
+            <div className="hero-jp">作者について</div>
+            <h1 className="hero-title">
+              <span className="title-accent">About</span> the Author
+            </h1>
+            <div className="hero-underline" />
           </div>
 
-          <div className="card-grid">
-            {/* ЛЕВАЯ КОЛОНКА */}
-            <div className="left-col">
-              <div className="avatar-block">
-                <div className="avatar-ring-outer" />
-                <div className="avatar-ring-inner" />
-                <div className={`avatar-wrap ${glitching ? 'glitch' : ''}`}>
-                  {AUTHOR.avatar && !avatarError ? (
-                    <img
-                      src={AUTHOR.avatar}
-                      alt="Author avatar"
-                      className="avatar-img"
-                      onError={() => setAvatarError(true)}
-                    />
-                  ) : null}
-                  <div className={`avatar-fallback ${AUTHOR.avatar && !avatarError ? 'hidden' : ''}`}>村</div>
+          {/* 🎴 Карточка */}
+          <div className="author-card">
+            <div className="card-top-strip">
+              <span>開発者</span>
+              <span>·</span>
+              <span>Developer</span>
+              <span>·</span>
+              <span>Разработчик</span>
+            </div>
+
+            <div className="card-grid">
+              {/* ЛЕВАЯ КОЛОНКА */}
+              <div className="left-col">
+                <div className="avatar-block">
+                  <div className="avatar-ring-outer" />
+                  <div className="avatar-ring-inner" />
+                  <div className={`avatar-wrap ${glitching ? 'glitch' : ''}`}>
+                    {AUTHOR.avatar && !avatarError ? (
+                      <img
+                        src={AUTHOR.avatar}
+                        alt="Author avatar"
+                        className="avatar-img"
+                        onError={() => setAvatarError(true)}
+                      />
+                    ) : null}
+                    <div className={`avatar-fallback ${AUTHOR.avatar && !avatarError ? 'hidden' : ''}`}>村</div>
+                  </div>
+                  <div className="avatar-glow" />
                 </div>
-                <div className="avatar-glow" />
+
+                <h2 className="name-jp">{AUTHOR.displayName}</h2>
+
+                <div className="name-handle">
+                  <span className="at-symbol">@</span>
+                  <span className="handle-text">{AUTHOR.username}</span>
+                  <span className="verified-badge" title="Verified">✓</span>
+                </div>
+
+                <div className="roles-row">
+                  {AUTHOR.roles.map((role, i) => (
+                    <span key={i} className={`role-chip role-${i}`}>
+                      {i === 0 ? '👑' : '✍️'} {role}
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              <h2 className="name-jp">{AUTHOR.displayName}</h2>
+              {/* ПРАВАЯ КОЛОНКА */}
+              <div className="right-col">
+                <p className="bio">{AUTHOR.bio}</p>
 
-              <div className="name-handle">
-                <span className="at-symbol">@</span>
-                <span className="handle-text">{AUTHOR.username}</span>
-                <span className="verified-badge" title="Verified">✓</span>
-              </div>
+                <div className="divider">
+                  <span className="divider-line" />
+                  <span className="divider-icon">❖</span>
+                  <span className="divider-line" />
+                </div>
 
-              <div className="roles-row">
-                {AUTHOR.roles.map((role, i) => (
-                  <span key={i} className={`role-chip role-${i}`}>
-                    {i === 0 ? '👑' : '✍️'} {role}
-                  </span>
-                ))}
+                <div className="info-grid">
+                  <button className="info-item" onClick={copyId} title="Скопировать ID">
+                    <span className="info-label">Discord ID</span>
+                    <span className="info-value">{AUTHOR.discordId}</span>
+                    <span className="info-hint">{copied ? '✅ Скопировано' : 'Нажми, чтобы скопировать'}</span>
+                  </button>
+
+                  <a href={`mailto:${AUTHOR.email}`} className="info-item" title="Написать на email">
+                    <span className="info-label">Email</span>
+                    <span className="info-value">{AUTHOR.email}</span>
+                    <span className="info-hint">📧 Отправить письмо</span>
+                  </a>
+                </div>
+
+                <div className="actions-row">
+                  <a
+                    href={`https://discord.com/users/${AUTHOR.discordId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="action-btn discord"
+                  >
+                    💬 Написать в Discord
+                  </a>
+                  <button
+                    className="action-btn back"
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    ↩ На главную
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* ПРАВАЯ КОЛОНКА */}
-            <div className="right-col">
-              <p className="bio">{AUTHOR.bio}</p>
-
-              <div className="divider">
-                <span className="divider-line" />
-                <span className="divider-icon">❖</span>
-                <span className="divider-line" />
-              </div>
-
-              <div className="info-grid">
-                <button className="info-item" onClick={copyId} title="Скопировать ID">
-                  <span className="info-label">Discord ID</span>
-                  <span className="info-value">{AUTHOR.discordId}</span>
-                  <span className="info-hint">{copied ? '✅ Скопировано' : 'Нажми, чтобы скопировать'}</span>
-                </button>
-
-                <a href={`mailto:${AUTHOR.email}`} className="info-item" title="Написать на email">
-                  <span className="info-label">Email</span>
-                  <span className="info-value">{AUTHOR.email}</span>
-                  <span className="info-hint">📧 Отправить письмо</span>
-                </a>
-              </div>
-
-              <div className="actions-row">
-                <a
-                  href={`https://discord.com/users/${AUTHOR.discordId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="action-btn discord"
-                >
-                  💬 Написать в Discord
-                </a>
-                <button
-                  className="action-btn back"
-                  onClick={() => router.push('/dashboard')}
-                >
-                  ↩ На главную
-                </button>
-              </div>
+            <div className="card-bottom">
+              <span className="quote-mark">"</span>
+              コードは芸術、心は炎
+              <span className="quote-mark">"</span>
             </div>
           </div>
 
-          <div className="card-bottom">
-            <span className="quote-mark">"</span>
-            コードは芸術、心は炎
-            <span className="quote-mark">"</span>
+          {/* 📊 Статистика */}
+          <div className="stats-strip">
+            <div className="stat">
+              <div className="stat-emoji">🌸</div>
+              <div className="stat-val">FIB Forms</div>
+              <div className="stat-lbl">проект</div>
+            </div>
+            <div className="stat-sep" />
+            <div className="stat">
+              <div className="stat-emoji">⚡</div>
+              <div className="stat-val">24/7</div>
+              <div className="stat-lbl">онлайн</div>
+            </div>
+            <div className="stat-sep" />
+            <div className="stat">
+              <div className="stat-emoji">💜</div>
+              <div className="stat-val">∞</div>
+              <div className="stat-lbl">преданность</div>
+            </div>
+            <div className="stat-sep" />
+            <div className="stat">
+              <div className="stat-emoji">🎌</div>
+              <div className="stat-val">Japan</div>
+              <div className="stat-lbl">vibe</div>
+            </div>
+            <div className="stat-sep" />
+            <div className="stat">
+              <div className="stat-emoji">🔥</div>
+              <div className="stat-val">React</div>
+              <div className="stat-lbl">stack</div>
+            </div>
           </div>
-        </div>
 
-        {/* 📊 Статистика */}
-        <div className="stats-strip">
-          <div className="stat">
-            <div className="stat-emoji">🌸</div>
-            <div className="stat-val">FIB Forms</div>
-            <div className="stat-lbl">проект</div>
-          </div>
-          <div className="stat-sep" />
-          <div className="stat">
-            <div className="stat-emoji">⚡</div>
-            <div className="stat-val">24/7</div>
-            <div className="stat-lbl">онлайн</div>
-          </div>
-          <div className="stat-sep" />
-          <div className="stat">
-            <div className="stat-emoji">💜</div>
-            <div className="stat-val">∞</div>
-            <div className="stat-lbl">преданность</div>
-          </div>
-          <div className="stat-sep" />
-          <div className="stat">
-            <div className="stat-emoji">🎌</div>
-            <div className="stat-val">Japan</div>
-            <div className="stat-lbl">vibe</div>
-          </div>
-          <div className="stat-sep" />
-          <div className="stat">
-            <div className="stat-emoji">🔥</div>
-            <div className="stat-val">React</div>
-            <div className="stat-lbl">stack</div>
-          </div>
+          <p className="page-footer">
+            Made with <span className="heart">♥</span> by{' '}
+            <span className="author-sign">{AUTHOR.displayName}</span>
+            <span className="japanese-sign"> · 村切る</span>
+          </p>
         </div>
-
-        <p className="page-footer">
-          Made with <span className="heart">♥</span> by{' '}
-          <span className="author-sign">{AUTHOR.displayName}</span>
-          <span className="japanese-sign"> · 村切る</span>
-        </p>
       </div>
+
+      <style jsx global>{`
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #0a0612;
+          overflow-x: hidden;
+        }
+      `}</style>
 
       <style jsx>{`
         .author-page {
           position: relative;
           min-height: 100vh;
-          padding: 24px 32px 60px;
+          width: 100vw;
+          padding: 40px 32px 60px;
           overflow: hidden;
-          width: 100%;
           background:
             radial-gradient(ellipse at 15% 8%, rgba(168, 85, 247, 0.22), transparent 45%),
             radial-gradient(ellipse at 85% 92%, rgba(255, 105, 180, 0.22), transparent 45%),
             radial-gradient(ellipse at 50% 50%, rgba(88, 101, 242, 0.08), transparent 70%),
             linear-gradient(180deg, #0a0612 0%, #0d0718 50%, #0a0612 100%);
+          opacity: 0;
+          transition: opacity 0.6s ease;
+        }
+        .author-page.mounted {
+          opacity: 1;
         }
 
+        /* 🌸 Лепестки */
         .sakura-layer {
-          position: absolute;
+          position: fixed;
           inset: 0;
           pointer-events: none;
           overflow: hidden;
@@ -270,8 +308,9 @@ export default function AuthorPage() {
           100% { transform: translateY(120vh) translateX(100px) rotate(720deg); }
         }
 
+        /* ✨ Ауры */
         .aura {
-          position: absolute;
+          position: fixed;
           border-radius: 50%;
           filter: blur(120px);
           pointer-events: none;
@@ -310,8 +349,9 @@ export default function AuthorPage() {
           50% { transform: translate(50px, -60px) scale(1.15); }
         }
 
+        /* 🈴 Углы */
         .corner-deco {
-          position: absolute;
+          position: fixed;
           color: rgba(196, 165, 240, 0.18);
           font-size: 140px;
           font-weight: 900;
@@ -331,11 +371,55 @@ export default function AuthorPage() {
           50% { opacity: 0.4; }
         }
 
-        .page-hero {
+        /* 🔙 Кнопка назад */
+        .back-float {
+          position: fixed;
+          top: 24px;
+          left: 24px;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 18px;
+          background: rgba(20, 10, 35, 0.8);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(168, 85, 247, 0.4);
+          border-radius: 12px;
+          color: #C4A5F0;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          font-family: inherit;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+        }
+        .back-float:hover {
+          background: rgba(88, 101, 242, 0.2);
+          border-color: #A855F7;
+          color: #fff;
+          transform: translateX(-3px);
+          box-shadow: 0 8px 26px rgba(168, 85, 247, 0.45);
+        }
+        .back-arrow {
+          font-size: 16px;
+          transition: transform 0.25s;
+        }
+        .back-float:hover .back-arrow {
+          transform: translateX(-3px);
+        }
+
+        /* 📦 Контент */
+        .content-wrap {
           position: relative;
           z-index: 10;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        /* 🌟 HERO */
+        .page-hero {
           text-align: center;
-          margin-bottom: 32px;
+          margin-bottom: 40px;
           padding: 20px 0 10px;
         }
         .hero-jp {
@@ -353,7 +437,7 @@ export default function AuthorPage() {
         }
         .hero-title {
           color: #fff;
-          font-size: 52px;
+          font-size: 56px;
           font-weight: 900;
           letter-spacing: 1.5px;
           margin: 0;
@@ -380,9 +464,9 @@ export default function AuthorPage() {
           box-shadow: 0 0 16px rgba(255, 105, 180, 0.6);
         }
 
+        /* 🎴 Карточка */
         .author-card {
           position: relative;
-          z-index: 10;
           background: linear-gradient(160deg, rgba(30, 15, 45, 0.85) 0%, rgba(20, 10, 35, 0.92) 100%);
           backdrop-filter: blur(24px);
           border: 1px solid rgba(168, 85, 247, 0.4);
@@ -419,8 +503,8 @@ export default function AuthorPage() {
 
         .card-grid {
           display: grid;
-          grid-template-columns: 320px 1fr;
-          gap: 60px;
+          grid-template-columns: 340px 1fr;
+          gap: 70px;
           align-items: center;
           margin-top: 12px;
         }
@@ -432,6 +516,7 @@ export default function AuthorPage() {
           }
         }
 
+        /* ─── ЛЕВАЯ КОЛОНКА ─── */
         .left-col {
           display: flex;
           flex-direction: column;
@@ -440,9 +525,9 @@ export default function AuthorPage() {
 
         .avatar-block {
           position: relative;
-          width: 200px;
-          height: 200px;
-          margin-bottom: 28px;
+          width: 220px;
+          height: 220px;
+          margin-bottom: 30px;
         }
         .avatar-ring-outer {
           position: absolute;
@@ -496,7 +581,7 @@ export default function AuthorPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 76px;
+          font-size: 84px;
           font-family: 'Noto Serif JP', serif;
           color: #FF69B4;
           background: radial-gradient(circle, #2a1538, #1a0d25);
@@ -518,7 +603,7 @@ export default function AuthorPage() {
         }
 
         .name-jp {
-          font-size: 32px;
+          font-size: 34px;
           font-weight: 900;
           color: #fff;
           margin: 0 0 8px;
@@ -536,7 +621,7 @@ export default function AuthorPage() {
           color: #C4A5F0;
           font-size: 16px;
           font-weight: 600;
-          margin-bottom: 20px;
+          margin-bottom: 22px;
         }
         .at-symbol {
           color: #FF69B4;
@@ -586,6 +671,7 @@ export default function AuthorPage() {
           box-shadow: 0 0 24px rgba(255, 105, 180, 0.25);
         }
 
+        /* ─── ПРАВАЯ КОЛОНКА ─── */
         .right-col {
           display: flex;
           flex-direction: column;
@@ -594,7 +680,7 @@ export default function AuthorPage() {
 
         .bio {
           color: #d8c8e8;
-          font-size: 17px;
+          font-size: 18px;
           line-height: 1.8;
           margin: 0 0 24px;
           font-style: italic;
@@ -634,7 +720,7 @@ export default function AuthorPage() {
           display: flex;
           flex-direction: column;
           gap: 5px;
-          padding: 16px 20px;
+          padding: 18px 22px;
           background: rgba(255, 255, 255, 0.03);
           border: 1px solid rgba(168, 85, 247, 0.28);
           border-radius: 14px;
@@ -660,7 +746,7 @@ export default function AuthorPage() {
         }
         .info-value {
           color: #fff;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 600;
           word-break: break-all;
         }
@@ -733,9 +819,8 @@ export default function AuthorPage() {
           margin: 0 6px;
         }
 
+        /* 📊 Статистика */
         .stats-strip {
-          position: relative;
-          z-index: 10;
           display: flex;
           align-items: center;
           justify-content: space-around;
@@ -788,9 +873,8 @@ export default function AuthorPage() {
           background: linear-gradient(180deg, transparent, rgba(168, 85, 247, 0.55), transparent);
         }
 
+        /* 🖋️ Footer */
         .page-footer {
-          position: relative;
-          z-index: 10;
           text-align: center;
           color: #666;
           font-size: 13px;
@@ -819,6 +903,7 @@ export default function AuthorPage() {
           opacity: 0.7;
         }
 
+        /* 📱 Мобильная адаптация */
         @media (max-width: 900px) {
           .author-page { padding: 20px 16px 40px; }
           .author-card { padding: 44px 24px 28px; border-radius: 24px; }
@@ -826,16 +911,19 @@ export default function AuthorPage() {
           .hero-jp { letter-spacing: 6px; font-size: 13px; }
           .name-jp { font-size: 26px; }
           .corner-deco { font-size: 70px; }
-          .avatar-block { width: 150px; height: 150px; }
-          .avatar-fallback { font-size: 56px; }
+          .avatar-block { width: 160px; height: 160px; }
+          .avatar-fallback { font-size: 60px; }
+          .back-text { display: none; }
+          .back-float { padding: 10px 12px; top: 16px; left: 16px; }
         }
         @media (max-width: 500px) {
           .hero-title { font-size: 28px; }
           .hero-jp { letter-spacing: 4px; }
           .author-card { padding: 36px 18px 22px; }
           .corner-deco { font-size: 50px; opacity: 0.1; }
+          .bio { font-size: 15px; }
         }
       `}</style>
-    </Layout>
+    </>
   );
 }
