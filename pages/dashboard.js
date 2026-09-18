@@ -1,8 +1,28 @@
 import Layout from '../components/Layout';
+import BanOverlay from '../components/BanOverlay';
 import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
   const router = useRouter();
+
+  // 🚫 Бан
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        if (data.banned) {
+          setBanned(true);
+          setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(data.banUntil || null);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const forms = [
     { title: 'Запрос на повышение', icon: '⬆️', path: '/forms/promotion', desc: 'Запрос на повышение по рангу' },
@@ -30,6 +50,9 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* 🚫 Бан-плашка только на дашборде */}
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .page-title {
