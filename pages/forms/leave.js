@@ -12,29 +12,26 @@ export default function LeaveForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 🚫 Состояние бана
+  // 🚫 Бан
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
 
   const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
 
+  // 🔒 Проверка бана при загрузке — только через /api/profile
   useEffect(() => {
-    Promise.all([
-      fetch('/api/me').then(res => res.json()).catch(() => ({})),
-      fetch('/api/profile').then(res => res.json())
-    ]).then(([meData, profileData]) => {
-      // 🚫 Проверяем бан (если API вернул флаг)
-      if (meData?.user?.banned || meData?.banned) {
-        const user = meData.user || meData;
-        setBanned(true);
-        setBanReason(user.banReason || 'Вы были заблокированы администрацией.');
-        setBanUntil(user.banUntil || null);
-        return;
-      }
-
-      if (profileData.nickname) setNickname(profileData.nickname);
-    });
+    fetch('/api/profile')
+      .then(res => res.json())
+      .then(data => {
+        if (data.nickname) setNickname(data.nickname);
+        if (data.banned) {
+          setBanned(true);
+          setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(data.banUntil || null);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -53,12 +50,12 @@ export default function LeaveForm() {
         return;
       }
 
-      // 🚫 Бан при отправке (403 + { banned: true })
+      // 🚫 Бан при отправке
       if (res.status === 403) {
         const err = await res.json();
         if (err.banned) {
           setBanned(true);
-          setBanReason(err.reason || 'Вы были заблокированы.');
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
           setBanUntil(err.until || null);
           setSubmitting(false);
           return;
@@ -112,8 +109,8 @@ export default function LeaveForm() {
                 <input type="date" value={formData.endDate} onChange={(e) => setFormData({...formData, endDate: e.target.value})} required />
               </div>
             </div>
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить'}
             </button>
           </form>
         </div>
