@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 export default function LeaveForm() {
   const router = useRouter();
@@ -11,11 +12,28 @@ export default function LeaveForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // 🚫 Состояние бана
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
   const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
 
   useEffect(() => {
-    fetch('/api/profile').then(res => res.json()).then(data => {
-      if (data.nickname) setNickname(data.nickname);
+    Promise.all([
+      fetch('/api/me').then(res => res.json()).catch(() => ({})),
+      fetch('/api/profile').then(res => res.json())
+    ]).then(([meData, profileData]) => {
+      // 🚫 Проверяем бан (если API вернул флаг)
+      if (meData?.user?.banned || meData?.banned) {
+        const user = meData.user || meData;
+        setBanned(true);
+        setBanReason(user.banReason || 'Вы были заблокированы администрацией.');
+        setBanUntil(user.banUntil || null);
+        return;
+      }
+
+      if (profileData.nickname) setNickname(profileData.nickname);
     });
   }, []);
 
@@ -28,13 +46,28 @@ export default function LeaveForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'leave', leaveType, fullName: nickname, ...formData })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      // 🚫 Бан при отправке (403 + { banned: true })
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Вы были заблокированы.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -87,6 +120,7 @@ export default function LeaveForm() {
       </div>
 
       <SubmitOverlay show={success} text="Заявка на отпуск отправлена!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
