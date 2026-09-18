@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 export default function WeaponRequestForm() {
   const router = useRouter();
@@ -10,8 +11,11 @@ export default function WeaponRequestForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
 
+  const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
   const items = ['Дрон', 'Высокоточная винтовка (Прецизионная винтовка) ', 'Heave Sniper Mk1', 'Heave Sniper Mk2'];
 
   const deptMap = {
@@ -27,7 +31,12 @@ export default function WeaponRequestForm() {
         const deptName = deptMap[data.department] || data.department;
         setFormData(prev => ({ ...prev, department: deptName }));
       }
-    });
+      if (data.banned) {
+        setBanned(true);
+        setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(data.banUntil || null);
+      }
+    }).catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -39,13 +48,27 @@ export default function WeaponRequestForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'weaponRequest', fullName: nickname, ...formData })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -81,14 +104,15 @@ export default function WeaponRequestForm() {
                 {items.map(item => <option key={item} value={item}>{item}</option>)}
               </select>
             </div>
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Запрос на вооружение отправлен!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
