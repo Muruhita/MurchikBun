@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
 import BanOverlay from '../../components/BanOverlay';
 import ProgressBar from '../../components/ProgressBar';
+import DraftIndicator from '../../components/DraftIndicator';
+import { useFormDraft } from '../../hooks/useFormDraft';
+
+const DRAFT_KEY = 'draft:leave';
+
+const EMPTY_FORM = { department: '', reason: '', startDate: '', endDate: '' };
 
 export default function LeaveForm() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [leaveType, setLeaveType] = useState('IC');
-  const [formData, setFormData] = useState({ department: '', reason: '', startDate: '', endDate: '' });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -17,20 +23,45 @@ export default function LeaveForm() {
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
 
+  const [restored, setRestored] = useState(false);
+
   const departments = ['IB', 'CID', 'FA', 'HRT', 'ATF', 'AF', 'OCU', 'DEA', 'FNA', 'NSB'];
 
+  // 💾 Черновик для formData + leaveType + nickname
+  // Собираем всё в один объект — так проще хранить
+  const draftValue = { nickname, leaveType, ...formData };
+
+  const { savedAt, clear: clearDraft } = useFormDraft(DRAFT_KEY, draftValue, {
+    enabled: !banned && !success,
+    onLoad: (saved) => {
+      // Восстанавливаем поля
+      if (saved.nickname) setNickname(saved.nickname);
+      if (saved.leaveType) setLeaveType(saved.leaveType);
+      setFormData(prev => ({
+        ...prev,
+        department: saved.department || '',
+        reason: saved.reason || '',
+        startDate: saved.startDate || '',
+        endDate: saved.endDate || ''
+      }));
+      setRestored(true);
+      // Скрываем плашку "Восстановлено" через 3 сек
+      setTimeout(() => setRestored(false), 3000);
+    }
+  });
+
+  // Загрузка профиля + проверка бана
   useEffect(() => {
-    fetch('/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        if (data.nickname) setNickname(data.nickname);
-        if (data.banned) {
-          setBanned(true);
-          setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
-          setBanUntil(data.banUntil || null);
-        }
-      })
-      .catch(() => {});
+    fetch('/api/profile').then(res => res.json()).then(data => {
+      // Если есть черновик — не перезатираем ник из профиля
+      const hasDraft = typeof window !== 'undefined' && localStorage.getItem(DRAFT_KEY);
+      if (!hasDraft && data.nickname) setNickname(data.nickname);
+      if (data.banned) {
+        setBanned(true);
+        setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(data.banUntil || null);
+      }
+    }).catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -44,6 +75,7 @@ export default function LeaveForm() {
       });
 
       if (res.ok) {
+        clearDraft(); // 🗑️ Очищаем черновик при успехе
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
         return;
@@ -52,6 +84,7 @@ export default function LeaveForm() {
       if (res.status === 403) {
         const err = await res.json();
         if (err.banned) {
+          clearDraft(); // Чистим, если забанили
           setBanned(true);
           setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
           setBanUntil(err.until || null);
@@ -71,12 +104,25 @@ export default function LeaveForm() {
 
   return (
     <Layout>
-      {/* 📊 Прогресс-полоска — показывается пока submitting=true */}
       <ProgressBar show={submitting} />
 
       <div className="form-page">
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
+
+          {/* 💾 Индикатор черновика */}
+          <DraftIndicator savedAt={savedAt} onClear={() => {
+            clearDraft();
+            setNickname('');
+            setFormData(EMPTY_FORM);
+            setLeaveType('IC');
+          }} />
+
+          {/* ✨ Плашка "Черновик восстановлен" */}
+          {restored && (
+            <div className="restored-banner">✨ Черновик восстановлен</div>
+          )}
+
           <h1>🌴 Отпуск</h1>
 
           <div className="type-switcher">
@@ -126,6 +172,24 @@ export default function LeaveForm() {
         .back-btn:hover { background: rgba(255, 255, 255, 0.15); color: white; transform: translateY(-2px); }
         .form-container { max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeIn 0.5s ease; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
         h1 { color: white; margin-bottom: 30px; }
+
+        .restored-banner {
+          background: rgba(76, 175, 80, 0.12);
+          border: 1px solid rgba(76, 175, 80, 0.4);
+          color: #81C784;
+          padding: 10px 16px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 500;
+          margin-bottom: 16px;
+          text-align: center;
+          animation: restoredIn 0.4s ease;
+        }
+        @keyframes restoredIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         .type-switcher { display: flex; gap: 10px; margin-bottom: 20px; background: #1a1a1a; padding: 5px; border-radius: 10px; }
         .type-switcher button { flex: 1; padding: 12px; background: transparent; color: #888; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
         .type-switcher button.active { background: #fff; color: #000; }
