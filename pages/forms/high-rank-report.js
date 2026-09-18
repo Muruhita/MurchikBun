@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 const RANK_OPTIONS = [
   '1-2 ранг', '2-3 ранг', '3-4 ранг', '4-5 ранг', '5-6 ранг',
@@ -24,12 +25,11 @@ export default function HighRankReportForm() {
   const [success, setSuccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    rankRange: '',
-    workLink: ''
-  });
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
 
+  const [formData, setFormData] = useState({ fullName: '', rankRange: '', workLink: '' });
   const [conditions, setConditions] = useState('');
   const [editConditions, setEditConditions] = useState(false);
   const [tempConditions, setTempConditions] = useState('');
@@ -50,6 +50,11 @@ export default function HighRankReportForm() {
 
       if (profileData.nickname) {
         setFormData(prev => ({ ...prev, fullName: profileData.nickname }));
+      }
+      if (profileData.banned) {
+        setBanned(true);
+        setBanReason(profileData.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(profileData.banUntil || null);
       }
       if (conditionsData.content) {
         setConditions(conditionsData.content);
@@ -73,13 +78,27 @@ export default function HighRankReportForm() {
           workLink: formData.workLink
         })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -133,8 +152,8 @@ export default function HighRankReportForm() {
                 <label>Discord ID</label>
                 <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
               </div>
-              <button type="submit" className="submit-btn" disabled={submitting || success}>
-                {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить отчёт'}
+              <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+                {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить отчёт'}
               </button>
             </form>
           </div>
@@ -184,138 +203,32 @@ export default function HighRankReportForm() {
       </div>
 
       <SubmitOverlay show={success} text="Отчёт отправлен!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
         .back-btn { background: rgba(255, 255, 255, 0.08); color: #aaa; border: 1px solid rgba(255, 255, 255, 0.15); padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; transition: all 0.3s; font-size: 14px; }
         .back-btn:hover { background: rgba(255, 255, 255, 0.15); color: white; transform: translateY(-2px); }
 
-        .layout-row {
-          display: flex;
-          gap: 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-          align-items: flex-start;
-          flex-wrap: wrap;
-        }
-        .form-container {
-          flex: 1 1 400px;
-          min-width: 320px;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(15px);
-          border-radius: 20px;
-          padding: 40px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          animation: fadeIn 0.5s ease;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-        .conditions-container {
-          flex: 0 0 380px;
-          min-width: 300px;
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(15px);
-          border-radius: 20px;
-          padding: 25px;
-          border: 1px groove rgba(98, 37, 102, 0.35);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-          animation: fadeIn 0.6s ease;
-          position: sticky;
-          top: 90px;
-        }
-        .conditions-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 15px;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-          padding-bottom: 12px;
-        }
-        .conditions-header h2 {
-          color: #fff;
-          font-size: 18px;
-          margin: 0;
-        }
-        .edit-btn {
-          background: rgba(64, 42, 105, 0.2);
-          color: #C4C0CC;
-          border: 1px solid rgba(88, 101, 242, 0.5);
-          padding: 6px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 13px;
-          transition: all 0.2s;
-        }
-        .edit-btn:hover {
-          background: rgba(88, 101, 242, 0.4);
-          color: white;
-        }
-        .conditions-view {
-          color: #ddd;
-          font-size: 15px;
-          min-height: 200px;
-          max-height: 500px;
-          overflow-y: auto;
-          padding-right: 5px;
-        }
+        .layout-row { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; align-items: flex-start; flex-wrap: wrap; }
+        .form-container { flex: 1 1 400px; min-width: 320px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeIn 0.5s ease; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .conditions-container { flex: 0 0 380px; min-width: 300px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border-radius: 20px; padding: 25px; border: 1px groove rgba(98, 37, 102, 0.35); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); animation: fadeIn 0.6s ease; position: sticky; top: 90px; }
+        .conditions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; }
+        .conditions-header h2 { color: #fff; font-size: 18px; margin: 0; }
+        .edit-btn { background: rgba(64, 42, 105, 0.2); color: #C4C0CC; border: 1px solid rgba(88, 101, 242, 0.5); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .edit-btn:hover { background: rgba(88, 101, 242, 0.4); color: white; }
+        .conditions-view { color: #ddd; font-size: 15px; min-height: 200px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
         .conditions-view::-webkit-scrollbar { width: 6px; }
         .conditions-view::-webkit-scrollbar-thumb { background: rgba(88, 101, 242, 0.5); border-radius: 3px; }
-        .empty-conditions {
-          color: #888;
-          font-style: italic;
-          text-align: center;
-          padding: 20px 0;
-        }
-        .conditions-textarea {
-          width: 100%;
-          padding: 12px;
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(88, 101, 242, 0.4);
-          color: white;
-          border-radius: 10px;
-          font-size: 14px;
-          line-height: 1.6;
-          resize: vertical;
-          box-sizing: border-box;
-          outline: none;
-          font-family: inherit;
-        }
-        .conditions-textarea:focus {
-          border-color: #742F75;
-          box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
-        }
-        .conditions-actions {
-          display: flex;
-          gap: 10px;
-          margin-top: 12px;
-        }
-        .save-btn {
-          background: #355F78;
-          color: white;
-          border: none;
-          padding: 10px 18px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.2s;
-          font-size: 14px;
-        }
+        .empty-conditions { color: #888; font-style: italic; text-align: center; padding: 20px 0; }
+        .conditions-textarea { width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(88, 101, 242, 0.4); color: white; border-radius: 10px; font-size: 14px; line-height: 1.6; resize: vertical; box-sizing: border-box; outline: none; font-family: inherit; }
+        .conditions-textarea:focus { border-color: #742F75; box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2); }
+        .conditions-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .save-btn { background: #355F78; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 14px; }
         .save-btn:hover { background: #4752C4; }
-        .cancel-btn {
-          background: rgba(255,255,255,0.1);
-          color: white;
-          border: 1px solid rgba(255,255,255,0.2);
-          padding: 10px 18px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 14px;
-        }
+        .cancel-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .cancel-btn:hover { background: rgba(255,255,255,0.2); }
-        .condition-status {
-          margin-top: 10px;
-          font-size: 13px;
-          color: #4CAF50;
-          text-align: center;
-        }
+        .condition-status { margin-top: 10px; font-size: 13px; color: #4CAF50; text-align: center; }
 
         h1 { color: white; margin-bottom: 30px; font-size: 22px; }
         .form-group { margin-bottom: 20px; }
