@@ -236,7 +236,10 @@ export default function AdminPanel() {
             ) : (
               bannedUsers.map(user => (
                 <div key={user.userId} className="banned-item">
-                  <span>ID: {user.userId}</span>
+                  <span>
+                    ID: {user.userId}
+                    {user.username ? ` (${user.username})` : ''}
+                  </span>
                   <span>Причина: {user.reason}</span>
                 </div>
               ))
@@ -400,6 +403,7 @@ export default function AdminPanel() {
           margin-bottom: 10px;
           display: flex;
           justify-content: space-between;
+          gap: 15px;
           font-size: 14px;
           color: #ccc;
         }
