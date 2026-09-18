@@ -2,11 +2,18 @@ import { useState, useRef } from 'react';
 
 const MAX_SIZE_MB = 5;
 
-export default function ImageUploader({ value, onChange, label = 'Скриншот' }) {
+export default function ImageUploader({ 
+  value, 
+  onChange, 
+  label = 'Скриншот',
+  allowManualUrl = false 
+}) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState('');
+  const [showManual, setShowManual] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
   const inputRef = useRef(null);
 
   const handleFile = async (file) => {
@@ -76,7 +83,23 @@ export default function ImageUploader({ value, onChange, label = 'Скриншо
     onChange('');
     setPreview('');
     setError('');
+    setManualUrl('');
     if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const applyManualUrl = () => {
+    const trimmed = manualUrl.trim();
+    if (!trimmed) {
+      setError('❌ Введите ссылку');
+      return;
+    }
+    if (!/^https?:\/\//i.test(trimmed)) {
+      setError('❌ Ссылка должна начинаться с http:// или https://');
+      return;
+    }
+    setError('');
+    onChange(trimmed);
+    setShowManual(false);
   };
 
   return (
@@ -85,33 +108,80 @@ export default function ImageUploader({ value, onChange, label = 'Скриншо
         <label className="uploader-label">{label}</label>
 
         {!value && !preview && (
-          <div
-            className={`dropzone ${dragging ? 'dragging' : ''} ${uploading ? 'loading' : ''}`}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={handleDrop}
-            onPaste={handlePaste}
-            tabIndex={0}
-          >
-            {uploading ? (
+          <>
+            <div
+              className={`dropzone ${dragging ? 'dragging' : ''} ${uploading ? 'loading' : ''}`}
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onPaste={handlePaste}
+              tabIndex={0}
+            >
+              {uploading ? (
+                <>
+                  <div className="uploader-spinner" />
+                  <p>Загрузка на imgbb...</p>
+                </>
+              ) : (
+                <>
+                  <div className="dropzone-icon">📸</div>
+                  <p className="dropzone-title">Перетащи скриншот сюда</p>
+                  <p className="dropzone-hint">
+                    или <strong>кликни</strong> для выбора · <kbd>Ctrl+V</kbd> для вставки
+                  </p>
+                  <p className="dropzone-limit">PNG, JPG, GIF · до {MAX_SIZE_MB} МБ</p>
+                </>
+              )}
+            </div>
+
+            {/* 🔗 Кнопка "Если не работает" */}
+            {allowManualUrl && !uploading && (
               <>
-                <div className="uploader-spinner" />
-                <p>Загрузка на imgbb...</p>
-              </>
-            ) : (
-              <>
-                <div className="dropzone-icon">📸</div>
-                <p className="dropzone-title">
-                  Перетащи скриншот сюда
-                </p>
-                <p className="dropzone-hint">
-                  или <strong>кликни</strong> для выбора · <kbd>Ctrl+V</kbd> для вставки
-                </p>
-                <p className="dropzone-limit">PNG, JPG, GIF · до {MAX_SIZE_MB} МБ</p>
+                {!showManual ? (
+                  <button
+                    type="button"
+                    className="manual-toggle"
+                    onClick={() => setShowManual(true)}
+                  >
+                    🔗 Если не работает — вставьте ссылку вручную
+                  </button>
+                ) : (
+                  <div className="manual-block">
+                    <input
+                      type="url"
+                      value={manualUrl}
+                      onChange={(e) => setManualUrl(e.target.value)}
+                      placeholder="https://imgur.com/... или https://i.ibb.co/..."
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          applyManualUrl();
+                        }
+                      }}
+                    />
+                    <div className="manual-actions">
+                      <button type="button" className="manual-apply" onClick={applyManualUrl}>
+                        ✓ Применить
+                      </button>
+                      <button
+                        type="button"
+                        className="manual-cancel"
+                        onClick={() => {
+                          setShowManual(false);
+                          setManualUrl('');
+                          setError('');
+                        }}
+                      >
+                        Отмена
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
-          </div>
+          </>
         )}
 
         {preview && (
@@ -135,6 +205,7 @@ export default function ImageUploader({ value, onChange, label = 'Скриншо
           </div>
         )}
 
+        {/* Если URL добавлен вручную (без preview) */}
         {value && !preview && (
           <div className="url-box">
             <input type="text" value={value} readOnly />
@@ -220,6 +291,86 @@ export default function ImageUploader({ value, onChange, label = 'Скриншо
           color: #666;
           font-size: 11px;
           margin: 0;
+        }
+
+        /* 🔗 Manual URL toggle */
+        .manual-toggle {
+          display: block;
+          width: 100%;
+          margin-top: 10px;
+          background: transparent;
+          border: none;
+          color: #777;
+          font-size: 12px;
+          text-align: center;
+          padding: 6px;
+          cursor: pointer;
+          border-radius: 6px;
+          transition: color 0.2s;
+        }
+        .manual-toggle:hover {
+          color: #C4A5F0;
+          text-decoration: underline;
+        }
+
+        .manual-block {
+          margin-top: 10px;
+          padding: 12px;
+          background: rgba(168, 85, 247, 0.06);
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          border-radius: 10px;
+          animation: manualIn 0.25s ease;
+        }
+        .manual-block input {
+          width: 100%;
+          padding: 10px 12px;
+          background: rgba(0,0,0,0.3);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #fff;
+          border-radius: 8px;
+          font-size: 13px;
+          box-sizing: border-box;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        .manual-block input:focus {
+          border-color: #A855F7;
+          box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.15);
+        }
+        .manual-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 8px;
+        }
+        .manual-apply {
+          flex: 1;
+          padding: 8px 14px;
+          background: rgba(168, 85, 247, 0.25);
+          border: 1px solid rgba(168, 85, 247, 0.5);
+          color: #E0C8FF;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.2s;
+        }
+        .manual-apply:hover {
+          background: rgba(168, 85, 247, 0.4);
+          color: #fff;
+        }
+        .manual-cancel {
+          padding: 8px 14px;
+          background: transparent;
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #888;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 13px;
+          transition: all 0.2s;
+        }
+        .manual-cancel:hover {
+          border-color: rgba(255,255,255,0.3);
+          color: #ccc;
         }
 
         .preview-box {
@@ -331,6 +482,10 @@ export default function ImageUploader({ value, onChange, label = 'Скриншо
         }
         @keyframes fadeOutSuccess {
           to { opacity: 0; }
+        }
+        @keyframes manualIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </>
