@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
 import BanOverlay from '../../components/BanOverlay';
-import ProgressBar from '../../components/ProgressBar';
 import ImageUploader from '../../components/ImageUploader';
 
 export default function ResignationForm() {
@@ -89,8 +88,6 @@ export default function ResignationForm() {
 
   return (
     <Layout>
-      <ProgressBar show={submitting} />
-
       <div className="form-page">
         <button onClick={() => router.push('/dashboard')} className="back-btn">← Назад к выбору</button>
         <div className="form-container">
