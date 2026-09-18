@@ -1,5 +1,6 @@
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
@@ -9,13 +10,13 @@ export default function HiringForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
   const [formData, setFormData] = useState({
-    age: '',
-    experience: '',
-    lawKnowledge: '',
-    passportScreenshot: '',
-    militaryId: '',
-    medicalCertificates: ''
+    age: '', experience: '', lawKnowledge: '',
+    passportScreenshot: '', militaryId: '', medicalCertificates: ''
   });
 
   useEffect(() => {
@@ -23,7 +24,13 @@ export default function HiringForm() {
       .then(res => res.json())
       .then(data => {
         if (data.nickname) setNickname(data.nickname);
-      });
+        if (data.banned) {
+          setBanned(true);
+          setBanReason(data.banReason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(data.banUntil || null);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
@@ -35,13 +42,27 @@ export default function HiringForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'hiring', fullName: nickname, ...formData })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -55,22 +76,18 @@ export default function HiringForm() {
         <div className="form-container">
           <h1>💼 Трудоустройство в FIB</h1>
           <form onSubmit={handleSubmit}>
-
             <div className="form-group">
               <label>Имя Фамилия + Статик</label>
               <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} required placeholder="Например: Name Surname | 123456" />
             </div>
-
             <div className="form-group">
               <label>Возраст (RP)</label>
               <input type="number" value={formData.age} onChange={(e) => setFormData({...formData, age: e.target.value})} required placeholder="Например: 22" />
             </div>
-
             <div className="form-group">
               <label>Опыт работы</label>
               <textarea value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} required rows="3" placeholder="Опишите ваш опыт (были ли в других орг. и т.д.)" />
             </div>
-
             <div className="form-group">
               <label>Знание законов RP от 1 до 10</label>
               <select value={formData.lawKnowledge} onChange={(e) => setFormData({...formData, lawKnowledge: e.target.value})} required>
@@ -80,30 +97,27 @@ export default function HiringForm() {
                 ))}
               </select>
             </div>
-
             <div className="form-group">
               <label>Скриншот паспорта (ссылка)</label>
               <input type="url" value={formData.passportScreenshot} onChange={(e) => setFormData({...formData, passportScreenshot: e.target.value})} required placeholder="https://imgur.com/..." />
             </div>
-
             <div className="form-group">
               <label>Военный билет (ссылка)</label>
               <input type="url" value={formData.militaryId} onChange={(e) => setFormData({...formData, militaryId: e.target.value})} required placeholder="https://imgur.com/..." />
             </div>
-
             <div className="form-group">
               <label>Мед. справки (ссылка)</label>
               <input type="url" value={formData.medicalCertificates} onChange={(e) => setFormData({...formData, medicalCertificates: e.target.value})} required placeholder="https://imgur.com/..." />
             </div>
-
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить заявку'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить заявку'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Заявка на трудоустройство отправлена!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
