@@ -8,7 +8,6 @@ export default function SupportPage() {
   const [activeId, setActiveId] = useState(null);
   const [reply, setReply] = useState('');
 
-  // Форма создания
   const [showCreate, setShowCreate] = useState(false);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -20,7 +19,6 @@ export default function SupportPage() {
     setTickets(data.tickets || []);
     setIsAdmin(!!data.isAdmin);
     setLoading(false);
-    // Помечаем прочитанным
     fetch('/api/support/unread', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
   };
 
@@ -69,6 +67,24 @@ export default function SupportPage() {
       body: JSON.stringify({ ticketId: activeId, close: true })
     });
     load();
+  };
+
+  // 🗑️ Удаление тикета
+  const deleteTicket = async () => {
+    if (!activeId) return;
+    if (!confirm('Удалить тикет навсегда? Это действие нельзя отменить.')) return;
+    const res = await fetch('/api/support/reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketId: activeId, delete: true })
+    });
+    if (res.ok) {
+      setActiveId(null);
+      load();
+    } else {
+      const data = await res.json();
+      alert('❌ ' + (data.error || 'Не удалось удалить'));
+    }
   };
 
   const active = tickets.find(t => t.id === activeId);
@@ -145,8 +161,17 @@ export default function SupportPage() {
                       <strong>{active.subject}</strong>
                       {isAdmin && <span className="chat-user"> · @{active.username}</span>}
                     </div>
-                    {isAdmin && active.status !== 'closed' && (
-                      <button className="close-btn" onClick={closeTicket}>✓ Закрыть</button>
+                    {isAdmin && (
+                      <div className="chat-actions">
+                        {active.status !== 'closed' && (
+                          <button className="close-btn" onClick={closeTicket} title="Закрыть тикет">
+                            ✓ Закрыть
+                          </button>
+                        )}
+                        <button className="delete-btn" onClick={deleteTicket} title="Удалить тикет навсегда">
+                          🗑️
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -215,10 +240,13 @@ export default function SupportPage() {
         .ticket-user { color: #C4A5F0; }
 
         .chat-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-head { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; color: #fff; }
+        .chat-head { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; color: #fff; gap: 10px; }
         .chat-user { color: #C4A5F0; font-size: 13px; font-weight: 400; }
-        .close-btn { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); color: #81C784; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .chat-actions { display: flex; gap: 6px; align-items: center; }
+        .close-btn { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); color: #81C784; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
         .close-btn:hover { background: rgba(76,175,80,0.3); color: #fff; }
+        .delete-btn { background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.35); color: #ff6b6b; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .delete-btn:hover { background: rgba(255,60,60,0.3); border-color: #ff4444; color: #fff; transform: scale(1.05); }
 
         .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); }
