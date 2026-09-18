@@ -13,7 +13,6 @@ export default function ResignationForm() {
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', screenshot: '' });
 
-  // 🚫 Бан
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState('');
   const [banUntil, setBanUntil] = useState(null);
@@ -104,11 +103,12 @@ export default function ResignationForm() {
               />
             </div>
 
-            {/* 🖼️ Загрузка скриншота через imgbb */}
+            {/* 🖼️ Загрузка скриншота с возможностью вставить URL вручную */}
             <ImageUploader
               label="Скриншот планшета *"
               value={formData.screenshot}
               onChange={(url) => setFormData(prev => ({ ...prev, screenshot: url }))}
+              allowManualUrl
             />
 
             <div className="form-group">
