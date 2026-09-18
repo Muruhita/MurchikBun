@@ -1,5 +1,6 @@
 import { verifyToken } from '../../lib/discord';
-import { isBlacklisted, addToBlacklist } from '../../lib/blacklist';
+import { addToBlacklist } from '../../lib/blacklist';
+import { getBanInfo } from '../../lib/ban-utils';
 import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwords';
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
 import redis from '../../lib/redis';
@@ -75,8 +76,15 @@ export default async function handler(req, res) {
   const isActive = await isFormSubmissionActive();
   if (!isActive) return res.status(403).json({ error: '🚫 Подача заявок остановлена администрацией.' });
 
-  const banned = await isBlacklisted(user.id);
-  if (banned) return res.status(403).json({ error: '⛔ Ваш доступ к системе заявок заблокирован.' });
+  // 🚫 Проверка бана — теперь с reason и until для BanOverlay
+  const banInfo = await getBanInfo(user.id);
+  if (banInfo.banned) {
+    return res.status(403).json({
+      banned: true,
+      reason: banInfo.reason,
+      until: banInfo.until
+    });
+  }
 
   const spamCheck = await checkSpam(user.id, user.username);
   if (spamCheck.isSpam) return res.status(429).json({ error: spamCheck.message });
@@ -86,14 +94,20 @@ export default async function handler(req, res) {
   const username = user.username;
 
   const allText = Object.values(formData).filter(val => typeof val === 'string').join(' ');
-  
+
+  // 🚫 Банворды — тоже отдаём banned:true + reason
   if (containsBadWords(allText)) {
     const foundWords = findAllBadWords(allText);
     const foundWord = findBadWord(allText);
-    
-    await addToBlacklist(user.id, username, `Банворд: ${foundWord || foundWords.join(', ')}`);
-    
-    return res.status(403).json({ error: `⛔ Ваша заявка содержит запрещённое слово "${foundWord}". Вы забанены.` });
+    const badWord = foundWord || foundWords.join(', ');
+
+    await addToBlacklist(user.id, username, `Банворд: ${badWord}`);
+
+    return res.status(403).json({
+      banned: true,
+      reason: `Ваша заявка содержит запрещённое слово: "${badWord}".\nДоступ к системе заявок заблокирован на 7 дней.`,
+      until: null
+    });
   }
 
   let webhookUrl;
@@ -186,7 +200,7 @@ export default async function handler(req, res) {
     } catch (e) {
       console.error('Ошибка статистики:', e);
     }
-    
+
     res.status(200).json({ success: true });
   } else {
     res.status(500).json({ error: `Не удалось отправить заявку: ${result.error}` });
@@ -262,7 +276,6 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     ];
   }
 
-  // ✅ ВОЗВРАЩАЕМ КРАСИВЫЕ ПОЛЯ ДЛЯ REPORT (как на 2 скрине)
   if (type === 'report') {
     const dept = DEPARTMENTS[department];
     const instructorText = data.isInstructor === 'yes' ? '✅ Да' : '❌ Нет';
@@ -277,7 +290,6 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     ];
   }
 
-  // ✅ ВОЗВРАЩАЕМ КРАСИВЫЕ ПОЛЯ ДЛЯ TRANSFER
   if (type === 'transfer') {
     const fields = [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
@@ -385,6 +397,5 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     ];
   }
 
-  // Fallback (не должен срабатывать для report/transfer, так как они обработаны выше)
   return [...baseFields, ...Object.entries(data).map(([key, value]) => ({ name: key, value: String(value) || 'Не указано', inline: false }))];
 }
