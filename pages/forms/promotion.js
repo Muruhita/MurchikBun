@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import SubmitOverlay from '../../components/SubmitOverlay';
+import BanOverlay from '../../components/BanOverlay';
 
 const RANK_OPTIONS = [
   '1-2 ранг', '2-3 ранг', '3-4 ранг', '4-5 ранг', '5-6 ранг',
@@ -17,6 +18,10 @@ export default function PromotionForm() {
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', rankRange: '', reportLink: '' });
 
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banUntil, setBanUntil] = useState(null);
+
   useEffect(() => {
     Promise.all([
       fetch('/api/me').then(res => res.json()),
@@ -29,6 +34,11 @@ export default function PromotionForm() {
       setUser(meData.user);
       if (profileData.nickname) {
         setFormData(prev => ({ ...prev, fullName: profileData.nickname }));
+      }
+      if (profileData.banned) {
+        setBanned(true);
+        setBanReason(profileData.banReason || 'Ваш доступ к системе заявок заблокирован.');
+        setBanUntil(profileData.banUntil || null);
       }
       setLoading(false);
     });
@@ -48,13 +58,27 @@ export default function PromotionForm() {
           reportLink: formData.reportLink
         })
       });
+
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => router.push('/dashboard'), 1400);
-      } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Ошибка');
+        return;
       }
+
+      if (res.status === 403) {
+        const err = await res.json();
+        if (err.banned) {
+          setBanned(true);
+          setBanReason(err.reason || 'Ваш доступ к системе заявок заблокирован.');
+          setBanUntil(err.until || null);
+          setSubmitting(false);
+          return;
+        }
+        throw new Error(err.error || 'Доступ запрещён');
+      }
+
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка');
     } catch (error) {
       alert('❌ ' + error.message);
       setSubmitting(false);
@@ -89,14 +113,15 @@ export default function PromotionForm() {
               <label>Discord ID</label>
               <input type="text" value={`${user.username} (${user.id})`} disabled className="disabled-input" />
             </div>
-            <button type="submit" className="submit-btn" disabled={submitting || success}>
-              {submitting ? <><span className="btn-spinner" />Отправка...</> : '📤 Отправить'}
+            <button type="submit" className="submit-btn" disabled={submitting || success || banned}>
+              {submitting ? <><span className="btn-spinner" />Отправка...</> : banned ? '🚫 Доступ заблокирован' : '📤 Отправить'}
             </button>
           </form>
         </div>
       </div>
 
       <SubmitOverlay show={success} text="Запрос на повышение отправлен!" />
+      <BanOverlay show={banned} reason={banReason} until={banUntil} />
 
       <style jsx>{`
         .form-page { min-height: calc(100vh - 60px); padding: 30px; }
