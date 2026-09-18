@@ -14,16 +14,24 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Нет доступа' });
   }
 
-  const { userId, reason, username } = req.body;
+  const { userId, reason, username, permanent } = req.body;
   if (!userId) {
     return res.status(400).json({ error: 'Не указан Discord ID пользователя' });
   }
 
   try {
-    // Добавляем в чёрный список через Redis (срок 7 дней)
-    await addToBlacklist(userId, username || 'Неизвестный', reason || 'Забанен администратором');
-    
-    return res.status(200).json({ message: '✅ Пользователь успешно заблокирован.' });
+    await addToBlacklist(
+      userId,
+      username || 'Неизвестный',
+      reason || 'Забанен администратором',
+      !!permanent
+    );
+
+    return res.status(200).json({
+      message: permanent
+        ? '✅ Пользователь заблокирован навсегда.'
+        : '✅ Пользователь успешно заблокирован (7 дней).'
+    });
   } catch (error) {
     console.error('Ошибка блокировки:', error);
     return res.status(500).json({ error: 'Ошибка при блокировке' });
