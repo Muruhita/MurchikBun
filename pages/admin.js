@@ -16,6 +16,7 @@ export default function AdminPanel() {
   // Для блокировки
   const [banUserId, setBanUserId] = useState('');
   const [banReason, setBanReason] = useState('');
+  const [banPermanent, setBanPermanent] = useState(false);
   const [banMsg, setBanMsg] = useState('');
 
   const loadData = async () => {
@@ -35,7 +36,6 @@ export default function AdminPanel() {
     const fetchAll = () => {
       loadData();
       loadStats();
-      // Загружаем текущее объявление
       fetch('/api/announcement')
         .then(res => res.json())
         .then(data => {
@@ -47,13 +47,8 @@ export default function AdminPanel() {
         .catch(() => {});
     };
 
-    // Первоначальная загрузка
     fetchAll();
-
-    // Обновление каждые 5 минут (300000 мс)
     const intervalId = setInterval(fetchAll, 5 * 60 * 1000);
-
-    // Очистка интервала при размонтировании
     return () => clearInterval(intervalId);
   }, []);
 
@@ -77,14 +72,19 @@ export default function AdminPanel() {
     const res = await fetch('/api/admin/ban', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: banUserId, reason: banReason, username: 'Админ' })
+      body: JSON.stringify({
+        userId: banUserId,
+        reason: banReason,
+        username: 'Админ',
+        permanent: banPermanent
+      })
     });
     const data = await res.json();
     setBanMsg(data.message || data.error);
     loadData();
-    // Очистить поля после успешного бана
     setBanUserId('');
     setBanReason('');
+    setBanPermanent(false);
   };
 
   const toggleForms = async () => {
@@ -215,7 +215,19 @@ export default function AdminPanel() {
             placeholder="Причина (необязательно)"
             style={{ marginTop: '8px' }}
           />
-          <button onClick={handleBan} className="ban-btn">Заблокировать</button>
+
+          <label className="permanent-checkbox">
+            <input
+              type="checkbox"
+              checked={banPermanent}
+              onChange={(e) => setBanPermanent(e.target.checked)}
+            />
+            <span>🔒 Забанить навсегда (без срока)</span>
+          </label>
+
+          <button onClick={handleBan} className="ban-btn">
+            {banPermanent ? '🔒 Забанить навсегда' : 'Заблокировать (7 дней)'}
+          </button>
           {banMsg && <p className="status-msg">{banMsg}</p>}
         </div>
 
@@ -236,11 +248,14 @@ export default function AdminPanel() {
             ) : (
               bannedUsers.map(user => (
                 <div key={user.userId} className="banned-item">
-                  <span>
-                    ID: {user.userId}
-                    {user.username ? ` (${user.username})` : ''}
-                  </span>
-                  <span>Причина: {user.reason}</span>
+                  <div className="banned-item-left">
+                    <span className="banned-id">
+                      ID: {user.userId}
+                      {user.username ? ` (${user.username})` : ''}
+                    </span>
+                    {user.permanent && <span className="permanent-badge">🔒 Навсегда</span>}
+                  </div>
+                  <span className="banned-reason">Причина: {user.reason}</span>
                 </div>
               ))
             )}
@@ -350,7 +365,7 @@ export default function AdminPanel() {
           color: #fff;
         }
 
-        input {
+        input[type="text"] {
           width: 100%;
           padding: 12px;
           background: rgba(255,255,255,0.1);
@@ -360,6 +375,26 @@ export default function AdminPanel() {
           margin-bottom: 10px;
           box-sizing: border-box;
         }
+
+        .permanent-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #ff8080;
+          font-size: 14px;
+          font-weight: 600;
+          margin: 8px 0 14px;
+          cursor: pointer;
+          user-select: none;
+        }
+        .permanent-checkbox input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+          accent-color: #ff4444;
+          margin: 0;
+        }
+
         button {
           padding: 12px 20px;
           border-radius: 8px;
@@ -403,9 +438,36 @@ export default function AdminPanel() {
           margin-bottom: 10px;
           display: flex;
           justify-content: space-between;
+          align-items: center;
           gap: 15px;
           font-size: 14px;
           color: #ccc;
+          flex-wrap: wrap;
+        }
+        .banned-item-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .banned-id {
+          color: #ccc;
+        }
+        .permanent-badge {
+          background: rgba(255, 60, 60, 0.2);
+          border: 1px solid #ff4444;
+          color: #ff8080;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .banned-reason {
+          color: #aaa;
+          font-size: 13px;
+          text-align: right;
+          flex: 1;
+          min-width: 200px;
         }
       `}</style>
     </Layout>
