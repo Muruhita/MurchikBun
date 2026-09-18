@@ -1,7 +1,7 @@
 import redis from '../../lib/redis';
 import { verifyToken } from '../../lib/discord';
 import { containsBadWords } from '../../lib/badwords';
-import { isBlacklisted } from '../../lib/antispam';
+import { getBanInfo } from '../../lib/ban-utils';
 
 export default async function handler(req, res) {
   const token = req.cookies.token;
@@ -11,13 +11,14 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const nickname = await redis.get(`nickname:${user.id}`);
     const department = await redis.get(`department:${user.id}`);
-    const banned = await isBlacklisted(user.id);
-    return res.status(200).json({ user, nickname, department, banned });
+    const { banned, reason: banReason, until: banUntil } = await getBanInfo(user.id);
+
+    return res.status(200).json({ user, nickname, department, banned, banReason, banUntil });
   }
 
   if (req.method === 'POST') {
     const { nickname, department } = req.body;
-    
+
     // Валидация ника
     if (nickname !== undefined) {
       if (!nickname || containsBadWords(nickname)) {
@@ -26,7 +27,7 @@ export default async function handler(req, res) {
       await redis.set(`nickname:${user.id}`, nickname);
     }
 
-    // Валидация отдела (можно проверить по списку, но для простоты сохраняем как есть)
+    // Валидация отдела
     if (department !== undefined) {
       await redis.set(`department:${user.id}`, department);
     }
