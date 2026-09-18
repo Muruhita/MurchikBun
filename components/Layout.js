@@ -292,71 +292,42 @@ export default function Layout({ children }) {
         }
         .footer-sep { color: #555; }
 
-        /* 💜 Кнопка автора с фиолетовой подсветкой */
+        /* 💜 Кнопка автора — мягкая подсветка */
         .footer-author-btn {
           position: relative;
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 5px 14px 5px 10px;
-          background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(88, 101, 242, 0.12));
-          border: 1px solid rgba(168, 85, 247, 0.55);
+          padding: 4px 12px 4px 9px;
+          background: rgba(168, 85, 247, 0.08);
+          border: 1px solid rgba(168, 85, 247, 0.3);
           border-radius: 20px;
-          color: #E0C8FF;
+          color: #C4A5F0;
           text-decoration: none;
           font-size: 12px;
           font-weight: 600;
           letter-spacing: 0.3px;
           transition: all 0.25s ease;
-          box-shadow:
-            0 0 12px rgba(168, 85, 247, 0.35),
-            0 0 24px rgba(168, 85, 247, 0.15),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-          animation: authorPulse 3s ease-in-out infinite;
+          box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
         }
         .footer-author-btn:hover {
-          background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(88, 101, 242, 0.25));
-          border-color: #C4A5F0;
+          background: rgba(168, 85, 247, 0.18);
+          border-color: rgba(168, 85, 247, 0.6);
           color: #fff;
-          transform: translateY(-2px);
-          box-shadow:
-            0 0 20px rgba(168, 85, 247, 0.7),
-            0 0 40px rgba(168, 85, 247, 0.35),
-            0 4px 20px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
-          animation-play-state: paused;
+          transform: translateY(-1px);
+          box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
         }
         .author-glow-dot {
           display: inline-block;
-          width: 6px;
-          height: 6px;
+          width: 5px;
+          height: 5px;
           border-radius: 50%;
           background: #C4A5F0;
-          box-shadow: 0 0 8px #A855F7, 0 0 16px #A855F7;
-          animation: dotBlink 1.8s ease-in-out infinite;
+          box-shadow: 0 0 6px rgba(168, 85, 247, 0.7);
           flex-shrink: 0;
         }
         .author-label {
           white-space: nowrap;
-        }
-
-        @keyframes authorPulse {
-          0%, 100% {
-            box-shadow:
-              0 0 12px rgba(168, 85, 247, 0.35),
-              0 0 24px rgba(168, 85, 247, 0.15),
-              inset 0 1px 0 rgba(255, 255, 255, 0.08);
-          }
-          50% {
-            box-shadow:
-              0 0 20px rgba(168, 85, 247, 0.6),
-              0 0 40px rgba(168, 85, 247, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.08);
-          }
-        }
-        @keyframes dotBlink {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
         }
 
         /* 📌 Кнопки ToS и Privacy P справа-снизу */
