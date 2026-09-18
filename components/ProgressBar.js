@@ -8,7 +8,7 @@ export default function ProgressBar({ show }) {
       <style jsx>{`
         .progress-bar {
           position: fixed;
-          top: 60px; /* сразу под навбаром */
+          top: 68px; /* сразу под навбаром */
           left: 0;
           width: 100%;
           height: 3px;
