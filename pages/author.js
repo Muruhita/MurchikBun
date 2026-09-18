@@ -9,7 +9,7 @@ const AUTHOR = {
   email: 'murkilanki@gmail.com',
   avatar: 'https://i.pinimg.com/736x/57/48/10/5748107f528598de8e909b60ff7324aa.jpg',
   roles: ['Админ', 'Автор сия бота'],
-  bio: 'Создатель и хранитель FIB Forms. Пишу код ночами, чтобы ваши заявки летали в Discord быстрее, чем сакура падает с ветки.'
+  bio: 'Создатель и хранитель FIB Forms.'
 };
 
 export default function AuthorPage() {
