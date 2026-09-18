@@ -9,6 +9,7 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [unreadSupport, setUnreadSupport] = useState(0);
 
   useEffect(() => {
     fetch('/api/me')
@@ -31,6 +32,22 @@ export default function Layout({ children }) {
         if (data.announcement) setAnnouncement(data.announcement);
       })
       .catch(() => {});
+  }, []);
+
+  // 🎧 Счётчик непрочитанных в поддержке
+  useEffect(() => {
+    const fetchUnread = () => {
+      fetch('/api/support/unread')
+        .then(res => res.json())
+        .then(data => {
+          const total = (data.unreadUser || 0) + (data.unreadAdmin || 0);
+          setUnreadSupport(total);
+        })
+        .catch(() => {});
+    };
+    fetchUnread();
+    const id = setInterval(fetchUnread, 60000); // раз в минуту
+    return () => clearInterval(id);
   }, []);
 
   const tabs = [
@@ -60,8 +77,23 @@ export default function Layout({ children }) {
           ))}
         </div>
         <div className="nav-user">
-          {user && <span>{user.username}</span>}
-          <button onClick={async () => { await fetch('/api/logout', { method: 'POST' }); router.push('/'); }}>Выйти</button>
+          {/* 🎧 Поддержка — слева от имени */}
+          <button
+            className={`support-btn ${router.pathname === '/support' ? 'active' : ''}`}
+            onClick={() => router.push('/support')}
+            title="Тех. поддержка"
+          >
+            🎧
+            {unreadSupport > 0 && (
+              <span className="support-badge">{unreadSupport > 9 ? '9+' : unreadSupport}</span>
+            )}
+          </button>
+
+          {user && <span className="nav-username">{user.username}</span>}
+
+          <button onClick={async () => { await fetch('/api/logout', { method: 'POST' }); router.push('/'); }}>
+            Выйти
+          </button>
         </div>
       </nav>
 
@@ -92,10 +124,10 @@ export default function Layout({ children }) {
       {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
       <div className="legal-links">
         <a href="/leh" className="legal-link" title="Условия пользования">
-          <span className="legal-icon">📓</span> ToS
+          <span className="legal-icon">📜</span> ToS
         </a>
         <a href="/geh" className="legal-link" title="Политика конфиденциальности">
-          <span className="legal-icon">📄</span> Privacy
+          <span className="legal-icon">🔒</span> Privacy P
         </a>
       </div>
 
@@ -168,9 +200,13 @@ export default function Layout({ children }) {
         .nav-user {
           display: flex;
           align-items: center;
-          gap: 15px;
+          gap: 12px;
         }
-        .nav-user button {
+        .nav-username {
+          color: #fff;
+          font-size: 14px;
+        }
+        .nav-user button:not(.support-btn) {
           background: #444;
           color: white;
           border: none;
@@ -179,9 +215,61 @@ export default function Layout({ children }) {
           cursor: pointer;
         }
 
+        /* 🎧 Кнопка поддержки */
+        .support-btn {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 38px;
+          height: 38px;
+          background: rgba(88, 101, 242, 0.15);
+          border: 1px solid rgba(88, 101, 242, 0.4);
+          border-radius: 10px;
+          color: #C4A5F0;
+          font-size: 17px;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          padding: 0;
+        }
+        .support-btn:hover {
+          background: rgba(88, 101, 242, 0.3);
+          border-color: #A855F7;
+          color: #fff;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(88, 101, 242, 0.35);
+        }
+        .support-btn.active {
+          background: rgba(88, 101, 242, 0.35);
+          border-color: #A855F7;
+          color: #fff;
+        }
+        .support-badge {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 4px;
+          background: #ff3b3b;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 800;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid #1a1a1a;
+          animation: badgePulse 1.8s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); }
+          50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); }
+        }
+
         .announcement-banner {
           position: fixed;
-          top: 65px; /* Высота навбара */
+          top: 65px;
           left: 0;
           width: 100%;
           background: rgba(255, 152, 0, 0.15);
@@ -200,8 +288,8 @@ export default function Layout({ children }) {
           position: relative;
           z-index: 10;
           padding: 30px;
-          padding-top: 90px; /* Отступ под фиксированный навбар */
-          padding-bottom: 80px; /* Отступ под фиксированный футер */
+          padding-top: 90px;
+          padding-bottom: 80px;
           max-width: 1200px;
           margin: 0 auto;
           animation: fadeInUp 0.5s ease both;
@@ -242,13 +330,8 @@ export default function Layout({ children }) {
           color: #fff;
           border-color: rgba(255, 255, 255, 0.3);
         }
-        .footer-sep {
-          color: #555;
-        }
-        .footer-author {
-          color: #888;
-          font-size: 12px;
-        }
+        .footer-sep { color: #555; }
+        .footer-author { color: #888; font-size: 12px; }
 
         /* 📌 Кнопки ToS и Privacy P справа-снизу */
         .legal-links {
@@ -260,7 +343,6 @@ export default function Layout({ children }) {
           gap: 8px;
           animation: legalIn 0.6s ease 0.3s both;
         }
-
         .legal-link {
           display: inline-flex;
           align-items: center;
@@ -278,7 +360,6 @@ export default function Layout({ children }) {
           transition: all 0.25s ease;
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
-
         .legal-link:hover {
           background: rgba(88, 101, 242, 0.15);
           border-color: #A855F7;
@@ -286,10 +367,7 @@ export default function Layout({ children }) {
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
         }
-
-        .legal-icon {
-          font-size: 13px;
-        }
+        .legal-icon { font-size: 13px; }
 
         @keyframes legalIn {
           from { opacity: 0; transform: translateY(10px); }
@@ -305,6 +383,9 @@ export default function Layout({ children }) {
           .legal-link {
             padding: 5px 10px;
             font-size: 11px;
+          }
+          .nav-username {
+            display: none;
           }
         }
       `}</style>
