@@ -43,6 +43,7 @@ export default function Layout({ children }) {
   return (
     <div className="app-container">
       <ParticleBackground />
+
       <nav className="navbar">
         <div className="nav-logo">
           <img src="/logo.png" alt="FIB Logo" className="nav-logo-img" />
@@ -50,8 +51,8 @@ export default function Layout({ children }) {
         </div>
         <div className="nav-tabs">
           {tabs.map(tab => (
-            <button 
-              key={tab.path} 
+            <button
+              key={tab.path}
               className={`nav-tab ${router.pathname === tab.path ? 'active' : ''}`}
               onClick={() => router.push(tab.path)}
             >
@@ -60,7 +61,6 @@ export default function Layout({ children }) {
           ))}
         </div>
         <div className="nav-user">
-          {/* 🎧 Поддержка — слева от имени */}
           <button
             className={`support-btn ${router.pathname === '/support' ? 'active' : ''}`}
             onClick={() => router.push('/support')}
@@ -77,7 +77,6 @@ export default function Layout({ children }) {
         </div>
       </nav>
 
-      {/* Баннер объявления */}
       {announcement && (
         <div className="announcement-banner">
           <span>📢 {announcement}</span>
@@ -99,9 +98,10 @@ export default function Layout({ children }) {
         <a href="/admins" className="footer-link">Админы</a>
         <span className="footer-sep">•</span>
         <a href="/author" className="footer-author-btn" title="Об авторе">
-        <span className="author-glow-dot" />
-        <span className="author-label">Автор: @muruh1ta</span>
+          <span className="author-glow-dot" />
+          <span className="author-label">Автор: @muruh1ta</span>
         </a>
+      </footer>
 
       {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
       <div className="legal-links">
@@ -291,7 +291,73 @@ export default function Layout({ children }) {
           border-color: rgba(255, 255, 255, 0.3);
         }
         .footer-sep { color: #555; }
-        .footer-author { color: #888; font-size: 12px; }
+
+        /* 💜 Кнопка автора с фиолетовой подсветкой */
+        .footer-author-btn {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 14px 5px 10px;
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(88, 101, 242, 0.12));
+          border: 1px solid rgba(168, 85, 247, 0.55);
+          border-radius: 20px;
+          color: #E0C8FF;
+          text-decoration: none;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          transition: all 0.25s ease;
+          box-shadow:
+            0 0 12px rgba(168, 85, 247, 0.35),
+            0 0 24px rgba(168, 85, 247, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          animation: authorPulse 3s ease-in-out infinite;
+        }
+        .footer-author-btn:hover {
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(88, 101, 242, 0.25));
+          border-color: #C4A5F0;
+          color: #fff;
+          transform: translateY(-2px);
+          box-shadow:
+            0 0 20px rgba(168, 85, 247, 0.7),
+            0 0 40px rgba(168, 85, 247, 0.35),
+            0 4px 20px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+          animation-play-state: paused;
+        }
+        .author-glow-dot {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #C4A5F0;
+          box-shadow: 0 0 8px #A855F7, 0 0 16px #A855F7;
+          animation: dotBlink 1.8s ease-in-out infinite;
+          flex-shrink: 0;
+        }
+        .author-label {
+          white-space: nowrap;
+        }
+
+        @keyframes authorPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 12px rgba(168, 85, 247, 0.35),
+              0 0 24px rgba(168, 85, 247, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
+          50% {
+            box-shadow:
+              0 0 20px rgba(168, 85, 247, 0.6),
+              0 0 40px rgba(168, 85, 247, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
+        }
+        @keyframes dotBlink {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
+        }
 
         /* 📌 Кнопки ToS и Privacy P справа-снизу */
         .legal-links {
@@ -346,6 +412,10 @@ export default function Layout({ children }) {
           }
           .nav-username {
             display: none;
+          }
+          .footer-author-btn {
+            padding: 4px 10px 4px 8px;
+            font-size: 11px;
           }
         }
       `}</style>
