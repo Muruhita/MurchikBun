@@ -361,7 +361,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     return [
       { name: '👤 Имя Фамилия | Статик ID', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ранг на момент увольнения', value: data.rank || 'Не указан', inline: false },
-      { name: '📸 Доказательства', value: data.proof || 'Не указано', inline: false },
+      { name: '📸 Доказательства (скрин последнего повышения + скрин увольнения)', value: data.proof || 'Не указано', inline: false },
       { name: '⚠️ Уволен после Ban/Warn?', value: data.wasBannedWarned || 'Не указано', inline: false },
       ...(data.wasBannedWarned === 'yes' ? [{ name: '🔗 Одобрение', value: data.approvalLink || 'Не указано', inline: false }] : []),
       ...baseFields
