@@ -98,10 +98,10 @@ export default function Layout({ children }) {
         <span className="footer-sep">•</span>
         <a href="/admins" className="footer-link">Админы</a>
         <span className="footer-sep">•</span>
-        <a href="/author" className="footer-author" style={{ color: '#888', textDecoration: 'none' }}>
-        Автор: @muruh1ta
+        <a href="/author" className="footer-author-btn" title="Об авторе">
+        <span className="author-glow-dot" />
+        <span className="author-label">Автор: @muruh1ta</span>
         </a>
-      </footer>
 
       {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
       <div className="legal-links">
