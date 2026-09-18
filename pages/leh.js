@@ -9,7 +9,7 @@ export default function Leh() {
       <div className="legal-page">
         <div className="legal-container">
           <h1>📜 Условия Пользования</h1>
-          <p className="updated">Последнее обновление: сентябрь 2026</p>
+          <p className="updated">Последнее обновление: 22:22 18/09/2026</p>
 
           <section>
             <h2>1. Общие положения</h2>
