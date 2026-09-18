@@ -8,9 +8,9 @@ const AUTHOR = {
   discordId: '1018113109346504744',
   email: 'murkilanki@gmail.com',
   // 🔗 Вставь сюда свою ссылку на аватар (например, с imgbb или Discord CDN)
-  avatar: 'https://i.pinimg.com/1200x/93/4f/cc/934fccb014ffbed03c376eaeea451f1b.jpg',
+  avatar: 'https://i.pinimg.com/736x/57/48/10/5748107f528598de8e909b60ff7324aa.jpg',
   roles: ['Админ', 'Автор сия бота'],
-  bio: 'Создатель и хранитель FIB Forms. Пишу код ночами, чтобы ваши заявки летали в Discord быстрее, чем сакура падает с ветки.'
+  bio: 'Создатель и хранитель FIB Forms.'
 };
 
 export default function AuthorPage() {
