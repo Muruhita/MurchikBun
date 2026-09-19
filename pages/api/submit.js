@@ -42,7 +42,8 @@ const webhooks = {
   leave: process.env.WEBHOOK_LEAVE,
   withdrawal: process.env.WEBHOOK_WITHDRAWAL,
   hiring: process.env.WEBHOOK_HIRING,
-  claim: process.env.WEBHOOK_CLAIMFIB
+  claim: process.env.WEBHOOK_CLAIMFIB,
+  testlik: process.env.TESTLIK_WEBHOOK
 };
 
 async function sendToDiscord(webhookUrl, data, retries = 3) {
@@ -120,7 +121,11 @@ export default async function handler(req, res) {
   let webhookUrl;
   let roleMentions = '';
 
-  if (type === 'claim') {
+  if (type === 'testlik') {
+    webhookUrl = webhooks.testlik;
+    if (!webhookUrl) return res.status(500).json({ error: 'Вебхук для теста не настроен (TESTLIK_WEBHOOK)' });
+    roleMentions = '';
+  } else if (type === 'claim') {
     webhookUrl = webhooks.claim;
     if (!webhookUrl) return res.status(500).json({ error: 'Вебхук для жалоб не настроен' });
     roleMentions = '<@&1543898638454099979>';
@@ -232,6 +237,7 @@ function getWeekKey(date) {
 }
 
 function getFormTitle(type, department, targetDepartment) {
+  if (type === 'testlik') return 'Test';
   if (type === 'claim') return '⁉️ Жалоба';
   if (type === 'hiring') return '💼 Трудоустройство в FIB';
   if (type === 'withdrawal') return '🔑 Запрос на снятие ЧС';
@@ -248,6 +254,7 @@ function getFormTitle(type, department, targetDepartment) {
 
 function getFormColor(type) {
   const colors = {
+    'testlik': 0x5865F2,
     'claim': 0xFF0000,
     'hiring': 0x2ECC95,
     'withdrawal': 0x421278,
@@ -265,6 +272,36 @@ function getFormColor(type) {
 }
 
 function buildFields(type, department, targetDepartment, data, userId, username) {
+  // 🧪 TESTLIK — тестовая форма
+  if (type === 'testlik') {
+    const fields = [
+      { name: '📝 Поле "Имя"', value: data.name || '—', inline: false },
+      { name: '💬 Поле "Сообщение"', value: data.message || '—', inline: false },
+      { name: '📂 Категория', value: data.category || '—', inline: true },
+      { name: '📅 Дата', value: data.date || '—', inline: true },
+      { name: '☑️ Согласие', value: data.agree ? '✅ Да' : '❌ Нет', inline: true }
+    ];
+
+    if (data.singleImage) {
+      fields.push({ name: '🖼️ Одиночная картинка', value: data.singleImage, inline: false });
+    }
+
+    if (Array.isArray(data.multiImages) && data.multiImages.length) {
+      fields.push({
+        name: `📸 Мультикартинки (${data.multiImages.length})`,
+        value: data.multiImages.join('\n'),
+        inline: false
+      });
+    }
+
+    fields.push(
+      { name: '👤 Отправитель', value: `<@${userId}>`, inline: true },
+      { name: '🆔 Discord ID', value: userId, inline: true }
+    );
+
+    return fields;
+  }
+
   const baseFields = [
     { name: '👤 Отправитель:', value: `<@${userId}>`, inline: true },
     { name: '🆔 Discord ID', value: userId, inline: true }
@@ -361,7 +398,7 @@ function buildFields(type, department, targetDepartment, data, userId, username)
     return [
       { name: '👤 Имя Фамилия | Статик ID', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ранг на момент увольнения', value: data.rank || 'Не указан', inline: false },
-      { name: '📸 Доказательства (скрин последнего повышения + скрин увольнения)', value: data.proof || 'Не указано', inline: false },
+      { name: '📸 Доказательства', value: data.proof || 'Не указано', inline: false },
       { name: '⚠️ Уволен после Ban/Warn?', value: data.wasBannedWarned || 'Не указано', inline: false },
       ...(data.wasBannedWarned === 'yes' ? [{ name: '🔗 Одобрение', value: data.approvalLink || 'Не указано', inline: false }] : []),
       ...baseFields
@@ -387,7 +424,6 @@ function buildFields(type, department, targetDepartment, data, userId, username)
       { name: '📅 Конец', value: data.endDate || 'Не указано', inline: false }
     ];
 
-    // 🖼️ Если есть скриншот (не используется как embed.image) — добавим ссылкой
     if (data.screenshot && !data.screenshot.startsWith('https://i.ibb.co/')) {
       fields.push({ name: '🖼️ Скриншот', value: data.screenshot, inline: false });
     }
