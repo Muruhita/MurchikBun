@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import CloudBackground from '../components/CloudBackground';
 
 const DISCORD_CLIENT_ID = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || '1543995099292106772';
-const DISCORD_REDIRECT_URI = process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || 'https://bot-kik.vercel.app/api/auth';
+const DISCORD_REDIRECT_URI = process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || 'https://fib-bt-forms.vercel.app/api/auth';
 
 const TOS_URL = 'https://docs.google.com/document/d/1GOFZ0kCdL2WNg85YRgi07BRHd-uQuOQKeqX4m0Ru7Zs/edit?usp=sharing';
 const PRIVACY_URL = 'https://docs.google.com/document/d/1kG7hH5jsf1ItOQwsnvGMs_drvssIeJ_vbZQ9_hG7PuE/edit?usp=sharing';
@@ -68,23 +68,10 @@ export default function Home() {
           Войти через Discord
         </button>
 
-        {/* 📜 Соглашение и Политика */}
-        <p className="legal-consent">
-          Входя, вы соглашаетесь с{' '}
-          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-inline-link">
-            Условиями
-          </a>{' '}
-          и{' '}
-          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-inline-link">
-            Политикой конфиденциальности
-          </a>
-        </p>
-
-        <p className="author">Автор: @muruh1ta</p>
-
         <button className="info-btn" onClick={() => setShowInfo(!showInfo)}>
           Что получает бот?
         </button>
+
         {showInfo && (
           <div className="info-box">
             <p>Бот Discord при авторизации получает только:</p>
@@ -97,6 +84,28 @@ export default function Home() {
             <p>Больше никакие данные не запрашиваются и не передаются.</p>
           </div>
         )}
+
+        {/* 📜 Кнопки ToS и Privacy */}
+        <div className="legal-buttons">
+          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-btn tos">
+            <span className="legal-btn-icon">📜</span>
+            <span>Условия</span>
+          </a>
+          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-btn privacy">
+            <span className="legal-btn-icon">🔒</span>
+            <span>Конфиденциальность</span>
+          </a>
+        </div>
+
+        {/* 👤 Кликабельный автор */}
+        <button
+          className="author-btn"
+          onClick={() => router.push('/author')}
+          title="Об авторе"
+        >
+          <span className="author-dot" />
+          <span>Автор: @muruh1ta</span>
+        </button>
       </div>
 
       <style jsx>{`
@@ -111,35 +120,90 @@ export default function Home() {
         .discord-btn { display: inline-flex; align-items: center; justify-content: center; background: #5865F2; color: white; padding: 15px 30px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4); }
         .discord-btn:hover { background: #4752C4; transform: translateY(-3px); box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6); }
 
-        /*  Legal */
-        .legal-consent {
-          margin-top: 18px;
-          font-size: 12px;
-          color: #777;
-          line-height: 1.6;
-          max-width: 340px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        .legal-inline-link {
-          color: #A855F7;
-          text-decoration: none;
-          border-bottom: 1px dashed rgba(168, 85, 247, 0.5);
-          transition: all 0.2s;
-          font-weight: 600;
-        }
-        .legal-inline-link:hover {
-          color: #C4A5F0;
-          border-bottom-style: solid;
-          border-bottom-color: #C4A5F0;
-        }
-
-        .author { margin-top: 20px; font-size: 14px; color: #888; }
-        .info-btn { margin-top: 10px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #aaa; padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .info-btn { display: block; margin: 20px auto 0; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #aaa; padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
         .info-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: white; color: white; }
         .info-box { margin-top: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 15px; text-align: left; color: #aaa; font-size: 13px; }
         .info-box ul { margin: 5px 0 5px 20px; padding: 0; }
         .info-box li { margin-bottom: 2px; }
+
+        /* 📜 Кнопки ToS и Privacy */
+        .legal-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 24px;
+          flex-wrap: wrap;
+        }
+        .legal-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 18px;
+          background: rgba(168, 85, 247, 0.08);
+          border: 1px solid rgba(168, 85, 247, 0.35);
+          border-radius: 12px;
+          color: #C4A5F0;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          transition: all 0.25s ease;
+          font-family: inherit;
+          cursor: pointer;
+        }
+        .legal-btn:hover {
+          background: rgba(168, 85, 247, 0.18);
+          border-color: #A855F7;
+          color: #fff;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 22px rgba(168, 85, 247, 0.35);
+        }
+        .legal-btn-icon {
+          font-size: 14px;
+        }
+
+        /* 👤 Кнопка автора */
+        .author-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 20px;
+          padding: 6px 14px 6px 10px;
+          background: rgba(168, 85, 247, 0.08);
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          border-radius: 20px;
+          color: #C4A5F0;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          font-family: inherit;
+          box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
+        }
+        .author-btn:hover {
+          background: rgba(168, 85, 247, 0.18);
+          border-color: rgba(168, 85, 247, 0.6);
+          color: #fff;
+          transform: translateY(-1px);
+          box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
+        }
+        .author-dot {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #C4A5F0;
+          box-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 500px) {
+          .auth-content { padding: 28px 22px; }
+          .title { font-size: 28px; }
+          .legal-buttons { flex-direction: column; width: 100%; }
+          .legal-btn { justify-content: center; }
+        }
       `}</style>
     </div>
   );
