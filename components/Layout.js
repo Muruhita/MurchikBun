@@ -61,14 +61,6 @@ export default function Layout({ children }) {
           ))}
         </div>
         <div className="nav-user">
-          <button
-            className={`support-btn ${router.pathname === '/support' ? 'active' : ''}`}
-            onClick={() => router.push('/support')}
-            title="Тех. поддержка"
-          >
-            🎧
-          </button>
-
           {user && <span className="nav-username">{user.username}</span>}
 
           <button onClick={async () => { await fetch('/api/logout', { method: 'POST' }); router.push('/'); }}>
@@ -188,43 +180,13 @@ export default function Layout({ children }) {
           color: #fff;
           font-size: 14px;
         }
-        .nav-user button:not(.support-btn) {
+        .nav-user button {
           background: #444;
           color: white;
           border: none;
           padding: 6px 12px;
           border-radius: 6px;
           cursor: pointer;
-        }
-
-        /* 🎧 Кнопка поддержки */
-        .support-btn {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 38px;
-          height: 38px;
-          background: rgba(88, 101, 242, 0.15);
-          border: 1px solid rgba(88, 101, 242, 0.4);
-          border-radius: 10px;
-          color: #C4A5F0;
-          font-size: 17px;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          padding: 0;
-        }
-        .support-btn:hover {
-          background: rgba(88, 101, 242, 0.3);
-          border-color: #A855F7;
-          color: #fff;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(88, 101, 242, 0.35);
-        }
-        .support-btn.active {
-          background: rgba(88, 101, 242, 0.35);
-          border-color: #A855F7;
-          color: #fff;
         }
 
         .announcement-banner {
