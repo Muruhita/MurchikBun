@@ -3,7 +3,7 @@ import Head from 'next/head';
 
 const AUTHOR = {
   username: 'muruh1ta',
-  displayName: 'Mura Kiratu',
+  displayName: 'Mur Kiratu',
   discordId: '1018113109346504744',
   email: 'murkilanki@gmail.com',
   avatar: 'https://i.pinimg.com/736x/8f/c7/20/8fc7201fb1ee4228df360fa848395597.jpg',
