@@ -147,7 +147,7 @@ export default function AuthorPage() {
     } catch (e) {}
   }, []);
 
-  // 🎨 Применение темы к body — фон, цвета
+  // 🎨 Применение темы к CSS-переменным
   useEffect(() => {
     const t = THEMES[themeKey];
     if (!t) return;
@@ -181,7 +181,7 @@ export default function AuthorPage() {
     return () => clearInterval(id);
   }, []);
 
-  // 🎨 Переключение темы (циклично)
+  // 🎨 Переключение темы
   const cycleTheme = () => {
     const keys = Object.keys(THEMES);
     const currentIdx = keys.indexOf(themeKey);
@@ -238,7 +238,7 @@ export default function AuthorPage() {
         <div className="corner-deco corner-bl">夢</div>
         <div className="corner-deco corner-br">未来</div>
 
-        {/* 🎨 Переключатель тем — правый верхний угол */}
+        {/* 🎨 Переключатель тем */}
         <button
           className="theme-switcher"
           onClick={cycleTheme}
@@ -250,9 +250,12 @@ export default function AuthorPage() {
           <span className="theme-label">{currentTheme.name}</span>
         </button>
 
-        {/* Превью всех тем при hover */}
         {showThemeMenu && (
-          <div className="theme-menu">
+          <div
+            className="theme-menu"
+            onMouseEnter={() => setShowThemeMenu(true)}
+            onMouseLeave={() => setShowThemeMenu(false)}
+          >
             {Object.entries(THEMES).map(([key, t]) => (
               <div
                 key={key}
@@ -268,7 +271,6 @@ export default function AuthorPage() {
 
         {/* 📦 Контент */}
         <div className="content-wrap">
-          {/* 🌟 HERO */}
           <div className="page-hero">
             <div className="hero-jp">作者について</div>
             <h1 className="hero-title">
@@ -277,7 +279,6 @@ export default function AuthorPage() {
             <div className="hero-underline" />
           </div>
 
-          {/* 🎴 Карточка */}
           <div className="author-card">
             <div className="card-top-strip">
               <span>開発者</span>
@@ -298,7 +299,7 @@ export default function AuthorPage() {
                         key={i}
                         className="orbit-symbol"
                         style={{
-                          transform: `rotate(${s.angle}deg) translateY(-140px) rotate(-${s.angle}deg)`,
+                          transform: `rotate(${s.angle}deg) translateY(-175px) rotate(-${s.angle}deg)`,
                           animationDelay: `${i * 0.5}s`
                         }}
                         title={s.meaning}
@@ -391,7 +392,6 @@ export default function AuthorPage() {
             </div>
           </div>
 
-          {/* 📊 Статистика */}
           <div className="stats-strip">
             <div className="stat">
               <div className="stat-emoji">🌸</div>
@@ -502,7 +502,6 @@ export default function AuthorPage() {
           .theme-switcher { padding: 10px 12px; }
         }
 
-        /* Меню выбора темы */
         .theme-menu {
           position: fixed;
           top: 78px;
@@ -551,7 +550,7 @@ export default function AuthorPage() {
         .theme-option-emoji { font-size: 15px; }
         .theme-option-name { flex: 1; }
 
-        /* 🌸 Лепестки — цвета из темы */
+        /* 🌸 Лепестки */
         .sakura-layer {
           position: fixed;
           inset: 0;
@@ -646,7 +645,6 @@ export default function AuthorPage() {
           50% { opacity: 0.4; }
         }
 
-        /* 📦 Контент */
         .content-wrap {
           position: relative;
           z-index: 10;
@@ -654,7 +652,6 @@ export default function AuthorPage() {
           margin: 0 auto;
         }
 
-        /* 🌟 HERO */
         .page-hero {
           text-align: center;
           margin-bottom: 40px;
@@ -705,7 +702,6 @@ export default function AuthorPage() {
           transition: background 0.8s ease;
         }
 
-        /* 🎴 Карточка */
         .author-card {
           position: relative;
           background: linear-gradient(160deg, rgba(30, 15, 45, 0.85) 0%, rgba(20, 10, 35, 0.92) 100%);
@@ -780,7 +776,7 @@ export default function AuthorPage() {
         /* 🈴 Орбита с иероглифами */
         .orbit-ring {
           position: absolute;
-          inset: -100px;
+          inset: -120px;
           pointer-events: none;
           z-index: 3;
         }
@@ -816,16 +812,15 @@ export default function AuthorPage() {
         .orbit-symbol:nth-child(5) { animation-delay: 2s; }
         .orbit-symbol:nth-child(6) { animation-delay: 2.5s; }
 
+        /* ⚠️ НЕ содержит transform — иначе позиция съезжает */
         @keyframes orbitPulse {
           0%, 100% {
             opacity: 0.7;
-            transform: scale(1);
             filter: drop-shadow(0 0 6px var(--name-glow));
           }
           50% {
             opacity: 1;
-            transform: scale(1.15);
-            filter: drop-shadow(0 0 14px var(--name-glow));
+            filter: drop-shadow(0 0 16px var(--name-glow));
           }
         }
 
@@ -1129,7 +1124,6 @@ export default function AuthorPage() {
           transition: color 0.8s ease;
         }
 
-        /* 📊 Статистика */
         .stats-strip {
           position: relative;
           z-index: 10;
@@ -1186,7 +1180,6 @@ export default function AuthorPage() {
           background: linear-gradient(180deg, transparent, rgba(var(--aura-1), 0.55), transparent);
         }
 
-        /* 🖋️ Footer */
         .page-footer {
           position: relative;
           z-index: 10;
@@ -1230,15 +1223,12 @@ export default function AuthorPage() {
           .corner-deco { font-size: 70px; }
           .avatar-block { width: 160px; height: 160px; }
           .avatar-fallback { font-size: 60px; }
-          .orbit-ring { inset: -70px; }
+          .orbit-ring { inset: -80px; }
           .orbit-symbol {
             width: 34px;
             height: 34px;
             margin: -17px 0 0 -17px;
             font-size: 17px;
-          }
-          .orbit-symbol {
-            transform: rotate(var(--angle, 0)) translateY(-100px) !important;
           }
         }
         @media (max-width: 500px) {
