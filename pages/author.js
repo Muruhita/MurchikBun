@@ -7,7 +7,7 @@ const AUTHOR = {
   displayName: 'Mura Kiratu',
   discordId: '1018113109346504744',
   email: 'murkilanki@gmail.com',
-  avatar: 'https://cdn.discordapp.com/avatars/1018113109346504744/0b9b2f95e6a2b4b8a1b5a2b0b2b2b2b2.png?size=512',
+  avatar: 'https://i.pinimg.com/736x/57/48/10/5748107f528598de8e909b60ff7324aa.jpg',
   roles: ['Админ', 'Автор сия бота'],
   bio: 'Создатель и хранитель FIB Forms.'
 };
