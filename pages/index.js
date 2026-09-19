@@ -85,19 +85,19 @@ export default function Home() {
           </div>
         )}
 
-        {/* 📜 Кнопки ToS и Privacy */}
+        {/* 📜 Кнопки ToS и Privacy — серые */}
         <div className="legal-buttons">
-          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-btn tos">
+          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
             <span className="legal-btn-icon">📜</span>
             <span>Условия</span>
           </a>
-          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-btn privacy">
+          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
             <span className="legal-btn-icon">🔒</span>
             <span>Конфиденциальность</span>
           </a>
         </div>
 
-        {/* 👤 Кликабельный автор */}
+        {/* 👤 Кликабельный автор — серый */}
         <button
           className="author-btn"
           onClick={() => router.push('/author')}
@@ -126,7 +126,7 @@ export default function Home() {
         .info-box ul { margin: 5px 0 5px 20px; padding: 0; }
         .info-box li { margin-bottom: 2px; }
 
-        /* 📜 Кнопки ToS и Privacy */
+        /* 📜 Кнопки ToS и Privacy — серые */
         .legal-buttons {
           display: flex;
           justify-content: center;
@@ -139,10 +139,10 @@ export default function Home() {
           align-items: center;
           gap: 8px;
           padding: 10px 18px;
-          background: rgba(168, 85, 247, 0.08);
-          border: 1px solid rgba(168, 85, 247, 0.35);
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 12px;
-          color: #C4A5F0;
+          color: #aaa;
           text-decoration: none;
           font-size: 13px;
           font-weight: 600;
@@ -152,50 +152,51 @@ export default function Home() {
           cursor: pointer;
         }
         .legal-btn:hover {
-          background: rgba(168, 85, 247, 0.18);
-          border-color: #A855F7;
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.35);
           color: #fff;
           transform: translateY(-2px);
-          box-shadow: 0 8px 22px rgba(168, 85, 247, 0.35);
         }
         .legal-btn-icon {
           font-size: 14px;
+          opacity: 0.8;
         }
 
-        /* 👤 Кнопка автора */
+        /* 👤 Кнопка автора — серая */
         .author-btn {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           margin-top: 20px;
           padding: 6px 14px 6px 10px;
-          background: rgba(168, 85, 247, 0.08);
-          border: 1px solid rgba(168, 85, 247, 0.3);
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 20px;
-          color: #C4A5F0;
+          color: #aaa;
           font-size: 13px;
           font-weight: 600;
           letter-spacing: 0.3px;
           cursor: pointer;
           transition: all 0.25s ease;
           font-family: inherit;
-          box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
         }
         .author-btn:hover {
-          background: rgba(168, 85, 247, 0.18);
-          border-color: rgba(168, 85, 247, 0.6);
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
           color: #fff;
           transform: translateY(-1px);
-          box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
         }
         .author-dot {
           display: inline-block;
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #C4A5F0;
-          box-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+          background: #888;
           flex-shrink: 0;
+          transition: background 0.25s;
+        }
+        .author-btn:hover .author-dot {
+          background: #ccc;
         }
 
         @media (max-width: 500px) {
