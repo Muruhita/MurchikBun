@@ -15,6 +15,7 @@ const DEPARTMENTS_NAMES = {
   'trainee': 'Trainee',
   'director': 'Director',
   'cod': 'Chief of Discipline'
+  'assh': 'Ass. Sheriff'
 };
 
 export default function Admins() {
