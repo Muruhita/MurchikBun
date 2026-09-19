@@ -19,9 +19,13 @@ export default function AdminPanel() {
   const [banPermanent, setBanPermanent] = useState(false);
   const [banMsg, setBanMsg] = useState('');
 
-  // 🧹 Очистка тикетов
+  // 🧹 Очистка мёртвых тикетов
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [cleanupMsg, setCleanupMsg] = useState('');
+
+  // 🗑️ Полная очистка тикетов
+  const [clearAllLoading, setClearAllLoading] = useState(false);
+  const [clearAllMsg, setClearAllMsg] = useState('');
 
   const loadData = async () => {
     const res = await fetch('/api/admin/list');
@@ -141,8 +145,34 @@ export default function AdminPanel() {
       setCleanupMsg('❌ Ошибка сети');
     } finally {
       setCleanupLoading(false);
-      // Убираем сообщение через 5 секунд
       setTimeout(() => setCleanupMsg(''), 5000);
+    }
+  };
+
+  // 🗑️ Полная очистка всех тикетов (с двойным подтверждением)
+  const handleClearAllTickets = async () => {
+    if (!confirm('⚠️ Удалить ВСЕ тикеты навсегда?\n\nЭто действие нельзя отменить.')) {
+      return;
+    }
+    if (!confirm('🔒 Точно уверены? Все тикеты будут стёрты из Redis без возможности восстановления.')) {
+      return;
+    }
+
+    setClearAllMsg('');
+    setClearAllLoading(true);
+    try {
+      const res = await fetch('/api/admin/clear-all-tickets', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setClearAllMsg(data.message);
+      } else {
+        setClearAllMsg('❌ ' + (data.error || 'Ошибка'));
+      }
+    } catch (e) {
+      setClearAllMsg('❌ Ошибка сети');
+    } finally {
+      setClearAllLoading(false);
+      setTimeout(() => setClearAllMsg(''), 6000);
     }
   };
 
@@ -227,6 +257,7 @@ export default function AdminPanel() {
         {/* 🧹 Обслуживание */}
         <div className="section">
           <h2>🧹 Обслуживание</h2>
+
           <div className="maintenance-row">
             <div className="maintenance-info">
               <strong>Очистка мёртвых тикетов поддержки</strong>
@@ -236,12 +267,28 @@ export default function AdminPanel() {
             <button
               onClick={handleCleanupTickets}
               className="cleanup-btn"
-              disabled={cleanupLoading}
+              disabled={cleanupLoading || clearAllLoading}
             >
-              {cleanupLoading ? '⏳ Очистка...' : '🧹 Очистить тикеты'}
+              {cleanupLoading ? '⏳ Очистка...' : '🧹 Очистить мёртвые'}
             </button>
           </div>
           {cleanupMsg && <p className="cleanup-msg">{cleanupMsg}</p>}
+
+          <div className="maintenance-row danger-row">
+            <div className="maintenance-info">
+              <strong>🗑️ Полная очистка всех тикетов</strong>
+              <p>Удаляет <strong>ВСЕ</strong> тикеты поддержки — и активные, и мёртвые.
+              Действие необратимо. Требует двойного подтверждения.</p>
+            </div>
+            <button
+              onClick={handleClearAllTickets}
+              className="clear-all-btn"
+              disabled={cleanupLoading || clearAllLoading}
+            >
+              {clearAllLoading ? '⏳ Удаление...' : '🗑️ Удалить ВСЕ'}
+            </button>
+          </div>
+          {clearAllMsg && <p className="cleanup-msg danger">{clearAllMsg}</p>}
         </div>
 
         {/* Блокировка пользователя */}
@@ -429,6 +476,12 @@ export default function AdminPanel() {
           line-height: 1.5;
           margin: 0;
         }
+        .maintenance-info p strong {
+          display: inline;
+          color: #ff8080;
+          font-size: 13px;
+          margin: 0;
+        }
         .cleanup-btn {
           background: linear-gradient(135deg, #4A6FA5, #355F78);
           color: white;
@@ -452,6 +505,37 @@ export default function AdminPanel() {
           cursor: wait;
           transform: none;
         }
+
+        .maintenance-row.danger-row {
+          margin-top: 22px;
+          padding-top: 22px;
+          border-top: 1px dashed rgba(255, 60, 60, 0.25);
+        }
+
+        .clear-all-btn {
+          background: linear-gradient(135deg, #7A2A2A, #A03232);
+          color: #fff;
+          border: 1px solid rgba(255, 60, 60, 0.55);
+          padding: 12px 22px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 14px;
+          transition: all 0.25s;
+          white-space: nowrap;
+          margin: 0;
+        }
+        .clear-all-btn:hover:not(:disabled) {
+          background: linear-gradient(135deg, #A03232, #C93C3C);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 22px rgba(255, 60, 60, 0.4);
+        }
+        .clear-all-btn:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+          transform: none;
+        }
+
         .cleanup-msg {
           margin-top: 12px;
           padding: 10px 14px;
@@ -461,6 +545,11 @@ export default function AdminPanel() {
           color: #81C784;
           font-size: 13px;
           animation: msgIn 0.3s ease;
+        }
+        .cleanup-msg.danger {
+          background: rgba(255, 60, 60, 0.1);
+          border-left: 3px solid #ff4444;
+          color: #ff8080;
         }
         @keyframes msgIn {
           from { opacity: 0; transform: translateY(-6px); }
