@@ -88,12 +88,12 @@ export default function Home() {
         {/* 📜 Кнопки ToS и Privacy — серые */}
         <div className="legal-buttons">
           <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
-            <span className="legal-btn-icon">📜</span>
-            <span>Условия</span>
+            <span className="legal-btn-icon">📓</span>
+            <span>ToS</span>
           </a>
           <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
-            <span className="legal-btn-icon">🔒</span>
-            <span>Конфиденциальность</span>
+            <span className="legal-btn-icon">📃</span>
+            <span>Privacy</span>
           </a>
         </div>
 
