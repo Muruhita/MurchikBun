@@ -14,7 +14,8 @@ const DEPARTMENTS = [
   { id: 'nsb', name: 'NSB (National Security Branch)' },
   { id: 'trainee', name: 'TR (Trainee)' },
   { id: 'director', name: 'Director' },
-  { id: 'cod', name: 'Chief Of Discipline' }
+  { id: 'cod', name: 'Chief Of Discipline' },
+  { id: 'assh', name: 'Assitanse of Sheriff' }
 ];
 
 export default function Profile() {
