@@ -14,7 +14,7 @@ const DEPARTMENTS_NAMES = {
   'nsb': 'NSB',
   'trainee': 'Trainee',
   'director': 'Director',
-  'cod': 'Chief of Discipline'
+  'cod': 'Chief of Discipline',
   'assh': 'Ass. Sheriff'
 };
 
