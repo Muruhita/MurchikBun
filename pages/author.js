@@ -7,7 +7,7 @@ const AUTHOR = {
   displayName: 'Mura Kiratu',
   discordId: '1018113109346504744',
   email: 'murkilanki@gmail.com',
-  avatar: 'https://i.pinimg.com/736x/57/48/10/5748107f528598de8e909b60ff7324aa.jpg',
+  avatar: 'https://cdn.discordapp.com/avatars/1018113109346504744/0b9b2f95e6a2b4b8a1b5a2b0b2b2b2b2.png?size=512',
   roles: ['Админ', 'Автор сия бота'],
   bio: 'Создатель и хранитель FIB Forms.'
 };
@@ -90,16 +90,6 @@ export default function AuthorPage() {
         <div className="corner-deco corner-tr">桜</div>
         <div className="corner-deco corner-bl">夢</div>
         <div className="corner-deco corner-br">未来</div>
-
-        {/* 🔙 Кнопка назад — фиксированная в левом верхнем */}
-        <button
-          className="back-float"
-          onClick={() => router.push('/dashboard')}
-          title="Назад"
-        >
-          <span className="back-arrow">←</span>
-          <span className="back-text">На главную</span>
-        </button>
 
         {/* 📦 Контент */}
         <div className="content-wrap">
@@ -369,43 +359,6 @@ export default function AuthorPage() {
         @keyframes cornerGlow {
           0%, 100% { opacity: 0.15; }
           50% { opacity: 0.4; }
-        }
-
-        /* 🔙 Кнопка назад */
-        .back-float {
-          position: fixed;
-          top: 24px;
-          left: 24px;
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          background: rgba(20, 10, 35, 0.8);
-          backdrop-filter: blur(14px);
-          border: 1px solid rgba(168, 85, 247, 0.4);
-          border-radius: 12px;
-          color: #C4A5F0;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          font-family: inherit;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
-        }
-        .back-float:hover {
-          background: rgba(88, 101, 242, 0.2);
-          border-color: #A855F7;
-          color: #fff;
-          transform: translateX(-3px);
-          box-shadow: 0 8px 26px rgba(168, 85, 247, 0.45);
-        }
-        .back-arrow {
-          font-size: 16px;
-          transition: transform 0.25s;
-        }
-        .back-float:hover .back-arrow {
-          transform: translateX(-3px);
         }
 
         /* 📦 Контент */
@@ -821,6 +774,8 @@ export default function AuthorPage() {
 
         /* 📊 Статистика */
         .stats-strip {
+          position: relative;
+          z-index: 10;
           display: flex;
           align-items: center;
           justify-content: space-around;
@@ -875,6 +830,8 @@ export default function AuthorPage() {
 
         /* 🖋️ Footer */
         .page-footer {
+          position: relative;
+          z-index: 10;
           text-align: center;
           color: #666;
           font-size: 13px;
@@ -913,8 +870,6 @@ export default function AuthorPage() {
           .corner-deco { font-size: 70px; }
           .avatar-block { width: 160px; height: 160px; }
           .avatar-fallback { font-size: 60px; }
-          .back-text { display: none; }
-          .back-float { padding: 10px 12px; top: 16px; left: 16px; }
         }
         @media (max-width: 500px) {
           .hero-title { font-size: 28px; }
