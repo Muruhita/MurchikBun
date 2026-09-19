@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
@@ -115,7 +114,6 @@ const ORBIT_SYMBOLS = [
 ];
 
 export default function AuthorPage() {
-  const router = useRouter();
   const [petals, setPetals] = useState([]);
   const [copied, setCopied] = useState(false);
   const [glitching, setGlitching] = useState(false);
@@ -375,12 +373,6 @@ export default function AuthorPage() {
                   >
                     💬 Написать в Discord
                   </a>
-                  <button
-                    className="action-btn back"
-                    onClick={() => router.push('/dashboard')}
-                  >
-                    ↩ На главную
-                  </button>
                 </div>
               </div>
             </div>
@@ -812,7 +804,6 @@ export default function AuthorPage() {
         .orbit-symbol:nth-child(5) { animation-delay: 2s; }
         .orbit-symbol:nth-child(6) { animation-delay: 2.5s; }
 
-        /* ⚠️ НЕ содержит transform — иначе позиция съезжает */
         @keyframes orbitPulse {
           0%, 100% {
             opacity: 0.7;
@@ -1064,9 +1055,6 @@ export default function AuthorPage() {
           display: flex;
           gap: 12px;
         }
-        @media (max-width: 600px) {
-          .actions-row { flex-direction: column; }
-        }
         .action-btn {
           flex: 1;
           padding: 16px 20px;
@@ -1093,17 +1081,6 @@ export default function AuthorPage() {
         .action-btn.discord:hover {
           transform: translateY(-3px);
           box-shadow: 0 12px 36px rgba(var(--aura-1), 0.65);
-        }
-        .action-btn.back {
-          background: rgba(255, 255, 255, 0.04);
-          border-color: rgba(255, 255, 255, 0.18);
-          color: #ccc;
-        }
-        .action-btn.back:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.35);
-          color: #fff;
-          transform: translateY(-3px);
         }
 
         .card-bottom {
