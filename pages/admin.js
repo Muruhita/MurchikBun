@@ -145,6 +145,23 @@ export default function AdminPanel() {
           {announcementMsg && <p className="announcement-msg">{announcementMsg}</p>}
         </div>
 
+        {/* 🧪 TestLik — песочница */}
+        <div className="section testlik-section">
+          <div className="testlik-row">
+            <div className="testlik-info">
+              <h2>🧪 TestLik</h2>
+              <p>Песочница для проверки всех функций FIB Forms в реальном времени.
+              Отправка тестовых заявок в отдельный Discord-канал.</p>
+            </div>
+            <button
+              className="testlik-btn"
+              onClick={() => window.location.href = '/forms/testlik'}
+            >
+              🧪 Открыть TestLik →
+            </button>
+          </div>
+        </div>
+
         {/* Статистика */}
         <div className="section">
           <h2>📊 Статистика заявок</h2>
@@ -279,6 +296,73 @@ export default function AdminPanel() {
           margin-bottom: 15px;
           font-size: 20px;
           color: #fff;
+        }
+
+        /* 🧪 TestLik секция */
+        .testlik-section {
+          background: linear-gradient(135deg, rgba(88, 101, 242, 0.12), rgba(0, 229, 255, 0.08));
+          border: 1px solid rgba(88, 101, 242, 0.4);
+          box-shadow: 0 8px 30px rgba(88, 101, 242, 0.15);
+          position: relative;
+          overflow: hidden;
+        }
+        .testlik-section::before {
+          content: '';
+          position: absolute;
+          top: -50px;
+          right: -50px;
+          width: 180px;
+          height: 180px;
+          background: radial-gradient(circle, rgba(0, 229, 255, 0.25), transparent 70%);
+          filter: blur(40px);
+          pointer-events: none;
+        }
+        .testlik-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          flex-wrap: wrap;
+          position: relative;
+          z-index: 1;
+        }
+        .testlik-info {
+          flex: 1;
+          min-width: 240px;
+        }
+        .testlik-info h2 {
+          margin-bottom: 8px;
+          color: #fff;
+          font-size: 20px;
+        }
+        .testlik-info p {
+          color: #8898c8;
+          font-size: 13px;
+          line-height: 1.5;
+          margin: 0;
+        }
+        .testlik-btn {
+          padding: 14px 26px;
+          background: linear-gradient(135deg, #5865F2, #00E5FF);
+          color: #fff;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          font-weight: 800;
+          font-size: 14px;
+          letter-spacing: 0.5px;
+          transition: all 0.3s;
+          font-family: inherit;
+          margin: 0;
+          white-space: nowrap;
+          box-shadow: 0 6px 22px rgba(88, 101, 242, 0.45);
+        }
+        .testlik-btn:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 34px rgba(0, 229, 255, 0.6);
+        }
+        .testlik-btn:active {
+          transform: translateY(-1px);
         }
 
         .announcement-textarea {
@@ -460,6 +544,17 @@ export default function AdminPanel() {
           text-align: right;
           flex: 1;
           min-width: 200px;
+        }
+
+        @media (max-width: 600px) {
+          .testlik-row {
+            flex-direction: column;
+            text-align: center;
+          }
+          .testlik-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
     </Layout>
