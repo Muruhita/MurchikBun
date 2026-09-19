@@ -85,18 +85,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 📜 Кнопки ToS и Privacy — серые */}
-        <div className="legal-buttons">
-          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
-            <span className="legal-btn-icon">📓</span>
-            <span>ToS</span>
-          </a>
-          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-btn">
-            <span className="legal-btn-icon">📃</span>
-            <span>Privacy</span>
-          </a>
-        </div>
-
         {/* 👤 Кликабельный автор — серый */}
         <button
           className="author-btn"
@@ -106,6 +94,17 @@ export default function Home() {
           <span className="author-dot" />
           <span>Автор: @muruh1ta</span>
         </button>
+
+        {/* 📜 Мелкие текстовые ссылки внизу */}
+        <div className="legal-links">
+          <a href={TOS_URL} target="_blank" rel="noopener noreferrer" className="legal-link">
+            ToS
+          </a>
+          <span className="legal-sep">·</span>
+          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="legal-link">
+            Privacy
+          </a>
+        </div>
       </div>
 
       <style jsx>{`
@@ -126,48 +125,12 @@ export default function Home() {
         .info-box ul { margin: 5px 0 5px 20px; padding: 0; }
         .info-box li { margin-bottom: 2px; }
 
-        /* 📜 Кнопки ToS и Privacy — серые */
-        .legal-buttons {
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-          margin-top: 24px;
-          flex-wrap: wrap;
-        }
-        .legal-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 18px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 12px;
-          color: #aaa;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          transition: all 0.25s ease;
-          font-family: inherit;
-          cursor: pointer;
-        }
-        .legal-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.35);
-          color: #fff;
-          transform: translateY(-2px);
-        }
-        .legal-btn-icon {
-          font-size: 14px;
-          opacity: 0.8;
-        }
-
         /* 👤 Кнопка автора — серая */
         .author-btn {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          margin-top: 20px;
+          margin-top: 24px;
           padding: 6px 14px 6px 10px;
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.12);
@@ -199,11 +162,39 @@ export default function Home() {
           background: #ccc;
         }
 
+        /* 📜 Мелкие текстовые ссылки внизу */
+        .legal-links {
+          margin-top: 18px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+          font-size: 11px;
+          opacity: 0.6;
+          transition: opacity 0.25s;
+        }
+        .legal-links:hover {
+          opacity: 1;
+        }
+        .legal-link {
+          color: #888;
+          text-decoration: none;
+          letter-spacing: 0.3px;
+          transition: color 0.2s;
+          border-bottom: 1px dotted transparent;
+        }
+        .legal-link:hover {
+          color: #ccc;
+          border-bottom-color: #666;
+        }
+        .legal-sep {
+          color: #444;
+          user-select: none;
+        }
+
         @media (max-width: 500px) {
           .auth-content { padding: 28px 22px; }
           .title { font-size: 28px; }
-          .legal-buttons { flex-direction: column; width: 100%; }
-          .legal-btn { justify-content: center; }
         }
       `}</style>
     </div>
