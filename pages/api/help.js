@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { verifyToken } from '../../lib/discord';
+import { ADMIN_IDS } from '../../lib/admins';
 
-const ADMIN_IDS = ['1018113109346504744', '555380718566506506', '260076815970729985'];
 const redis = new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: null });
 
 export default async function handler(req, res) {
