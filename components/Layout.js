@@ -1,8 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import ParticleBackground from './ParticleBackground';
-
-const ADMIN_IDS = ['1018113109346504744', '555380718566506506', '260076815970729985', '797111731864207360'];
+import { ADMIN_IDS } from '../lib/admins';
 
 export default function Layout({ children }) {
   const router = useRouter();
@@ -79,7 +78,6 @@ export default function Layout({ children }) {
         {children}
       </main>
 
-      {/* Фиксированный футер */}
       <footer className="footer">
         <a href="/terms" className="footer-link">Мини-игра</a>
         <span className="footer-sep">•</span>
@@ -95,7 +93,6 @@ export default function Layout({ children }) {
         </a>
       </footer>
 
-      {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
       <div className="legal-links">
         <a href="/leh" className="legal-link" title="Условия пользования">
           <span className="legal-icon">📓</span> ToS
