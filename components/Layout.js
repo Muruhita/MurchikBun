@@ -9,6 +9,7 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [clock, setClock] = useState('--:--:--');
 
   useEffect(() => {
     fetch('/api/me')
@@ -20,10 +21,10 @@ export default function Layout({ children }) {
         }
         setUser(data.user);
         setIsAdmin(ADMIN_IDS.includes(data.user.id));
-      });
+      })
+      .catch(() => {});
   }, []);
 
-  // Загрузка объявления
   useEffect(() => {
     fetch('/api/announcement')
       .then(res => res.json())
@@ -33,323 +34,373 @@ export default function Layout({ children }) {
       .catch(() => {});
   }, []);
 
+  // ⏱️ Живые часы
+  useEffect(() => {
+    const tick = () => {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      setClock(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const tabs = [
-    { name: 'Формы', path: '/dashboard', icon: '📝' },
-    { name: 'Профиль', path: '/profile', icon: '👤' },
-    { name: 'Справка', path: '/help', icon: '📖' },
-    ...(isAdmin ? [{ name: 'Админ', path: '/admin', icon: '🛠️' }] : []),
+    { name: 'dashboard', path: '/dashboard' },
+    { name: 'profile', path: '/profile' },
+    { name: 'help', path: '/help' },
+    ...(isAdmin ? [{ name: 'admin', path: '/admin' }] : []),
   ];
 
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    router.push('/');
+  };
+
+  const userLabel = user ? user.username : 'anonymous';
+  const pathLabel = router.pathname;
+
   return (
-    <div className="app-container">
+    <div className="app-shell">
       <ParticleBackground />
 
-      <nav className="navbar">
-        <div className="nav-logo">
-          <img src="/logo.png" alt="FIB Logo" className="nav-logo-img" />
-          <span>FIB Forms</span>
+      {/* ═══ TOP STATUS BAR ═══ */}
+      <header className="topbar">
+        <div className="topbar-left">
+          <span className="brand">FIB-FORMS</span>
+          <span className="sep">::</span>
+          <span className="path">
+            <span className="user">{userLabel}</span>
+            <span className="at">@</span>
+            <span className="host">mainframe</span>
+            <span className="colon">:</span>
+            <span className="dir">{pathLabel}</span>
+            <span className="term-cursor" />
+          </span>
         </div>
-        <div className="nav-tabs">
+
+        <nav className="topbar-nav">
           {tabs.map(tab => (
             <button
               key={tab.path}
-              className={`nav-tab ${router.pathname === tab.path ? 'active' : ''}`}
+              className={`nav-cmd ${router.pathname === tab.path ? 'active' : ''}`}
               onClick={() => router.push(tab.path)}
             >
-              {tab.icon} {tab.name}
+              {tab.name}
             </button>
           ))}
-        </div>
-        <div className="nav-user">
-          {user && <span className="nav-username">{user.username}</span>}
+        </nav>
 
-          <button onClick={async () => { await fetch('/api/logout', { method: 'POST' }); router.push('/'); }}>
-            Выйти
+        <div className="topbar-right">
+          <span className="clock">[{clock}]</span>
+          <span className="status">
+            <span className="status-dot" />
+            ONLINE
+          </span>
+          <button className="logout-btn" onClick={handleLogout}>
+            exit
           </button>
         </div>
-      </nav>
+      </header>
 
+      {/* ═══ ANNOUNCEMENT ═══ */}
       {announcement && (
-        <div className="announcement-banner">
-          <span>📢 {announcement}</span>
+        <div className="sys-msg">
+          <span className="sys-tag">[ SYS ]</span>
+          <span className="sys-text">{announcement}</span>
         </div>
       )}
 
-      <main key={router.pathname} className="main-content">
+      {/* ═══ MAIN ═══ */}
+      <main key={router.pathname} className="main-area">
         {children}
       </main>
 
-      {/* Фиксированный футер */}
-      <footer className="footer">
-        <a href="/terms" className="footer-link">Мини-игра</a>
-        <span className="footer-sep">•</span>
-        <a href="/privacy" className="footer-link">Полезные ссылки</a>
-        <span className="footer-sep">•</span>
-        <a href="/hosting" className="footer-link">Фотохостинги</a>
-        <span className="footer-sep">•</span>
-        <a href="/admins" className="footer-link">Админы</a>
-        <span className="footer-sep">•</span>
-        <a href="/author" className="footer-author-btn" title="Об авторе">
-          <span className="author-glow-dot" />
-          <span className="author-label">Автор: @muruh1ta</span>
-        </a>
+      {/* ═══ BOTTOM BAR ═══ */}
+      <footer className="bottombar">
+        <div className="bb-left">
+          <span className="bb-tag">F1</span> help
+          <span className="bb-sep">│</span>
+          <span className="bb-tag">F2</span> minigame
+          <span className="bb-sep">│</span>
+          <span className="bb-tag">F3</span> links
+          <span className="bb-sep">│</span>
+          <span className="bb-tag">F4</span> hosting
+          <span className="bb-sep">│</span>
+          <span className="bb-tag">F5</span> admins
+        </div>
+        <div className="bb-right">
+          <a href="/author" className="bb-author">
+            <span className="bb-author-dot" />
+            @muruh1ta
+          </a>
+          <span className="bb-sep">│</span>
+          <a href="/leh" className="bb-legal">ToS</a>
+          <span className="bb-sep">·</span>
+          <a href="/geh" className="bb-legal">Privacy</a>
+        </div>
       </footer>
 
-      {/* 📌 Кнопки ToS и Privacy P справа-снизу */}
-      <div className="legal-links">
-        <a href="/leh" className="legal-link" title="Условия пользования">
-          <span className="legal-icon">📓</span> ToS
-        </a>
-        <a href="/geh" className="legal-link" title="Политика конфиденциальности">
-          <span className="legal-icon">📃</span> Privacy
-        </a>
-      </div>
-
       <style jsx>{`
-        .app-container {
+        .app-shell {
           min-height: 100vh;
-          background: #0a0a0a;
-          color: white;
           position: relative;
         }
 
-        .app-container > :global(.p5Canvas) {
-          position: fixed !important;
-          top: 0;
-          left: 0;
-          z-index: 0;
-        }
-
-        .navbar {
+        /* ═══ TOP BAR ═══ */
+        .topbar {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
+          right: 0;
           z-index: 100;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 15px 30px;
-          background: rgba(26, 26, 26, 0.8);
-          backdrop-filter: blur(15px);
-          border-bottom: 1px solid #333;
+          gap: 16px;
+          padding: 10px 20px;
+          background: rgba(5, 8, 5, 0.92);
+          backdrop-filter: blur(8px);
+          border-bottom: 1px solid var(--term-border);
+          font-size: 12px;
         }
-        .nav-logo {
+
+        .topbar-left {
           display: flex;
           align-items: center;
-          gap: 10px;
-          font-size: 20px;
-          font-weight: bold;
-          color: #fff;
+          gap: 8px;
+          color: var(--term-fg-dim);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-shrink: 1;
+          min-width: 0;
         }
-        .nav-logo-img {
-          width: 28px;
-          height: 28px;
-          object-fit: contain;
+        .brand {
+          color: var(--term-fg);
+          font-weight: 800;
+          letter-spacing: 2px;
+          text-shadow: 0 0 10px rgba(51, 255, 85, 0.7);
+          flex-shrink: 0;
         }
-        .nav-tabs {
+        .sep { color: var(--term-border-bright); flex-shrink: 0; }
+        .path {
           display: flex;
-          gap: 10px;
+          align-items: center;
+          gap: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          min-width: 0;
         }
-        .nav-tab {
+        .user { color: var(--term-accent); }
+        .at, .colon { color: var(--term-fg-dim); }
+        .host { color: var(--term-fg); }
+        .dir { color: var(--term-fg-bright); }
+
+        .topbar-nav {
+          display: flex;
+          gap: 2px;
+          flex-shrink: 0;
+        }
+        .nav-cmd {
           background: transparent;
-          border: none;
-          color: #aaa;
-          padding: 8px 15px;
-          border-radius: 8px;
+          border: 1px solid transparent;
+          color: var(--term-fg-dim);
+          padding: 4px 12px;
+          font-family: inherit;
+          font-size: 12px;
+          letter-spacing: 1px;
           cursor: pointer;
-          transition: all 0.3s;
-          font-size: 14px;
+          transition: all 0.15s ease;
         }
-        .nav-tab:hover {
-          color: #fff;
-          background: #333;
+        .nav-cmd::before {
+          content: './';
+          color: var(--term-border-bright);
         }
-        .nav-tab.active {
-          color: #fff;
-          background: #fff;
-          color: #000;
-          font-weight: bold;
+        .nav-cmd:hover {
+          color: var(--term-fg);
+          border-color: var(--term-border);
         }
-        .nav-user {
+        .nav-cmd.active {
+          color: var(--term-bg);
+          background: var(--term-fg);
+          border-color: var(--term-fg);
+          text-shadow: none;
+          font-weight: 700;
+        }
+        .nav-cmd.active::before {
+          color: rgba(0, 0, 0, 0.5);
+        }
+
+        .topbar-right {
           display: flex;
           align-items: center;
           gap: 12px;
+          flex-shrink: 0;
+          color: var(--term-fg-dim);
+          font-size: 11px;
         }
-        .nav-username {
-          color: #fff;
-          font-size: 14px;
+        .clock { color: var(--term-fg-dim); letter-spacing: 1px; }
+        .status {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--term-fg);
+          letter-spacing: 1.5px;
+          font-weight: 700;
         }
-        .nav-user button {
-          background: #444;
-          color: white;
-          border: none;
-          padding: 6px 12px;
-          border-radius: 6px;
+        .status-dot {
+          width: 6px; height: 6px;
+          background: var(--term-fg);
+          border-radius: 50%;
+          box-shadow: 0 0 8px var(--term-fg);
+          animation: term-pulse 2s ease-in-out infinite;
+        }
+        @keyframes term-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
+
+        .logout-btn {
+          background: transparent;
+          border: 1px solid var(--term-border);
+          color: var(--term-fg-dim);
+          padding: 4px 10px;
+          font-family: inherit;
+          font-size: 11px;
+          letter-spacing: 1px;
           cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .logout-btn::before { content: '$ '; color: var(--term-prompt); }
+        .logout-btn:hover {
+          color: var(--term-error);
+          border-color: var(--term-error);
+          box-shadow: 0 0 12px rgba(255, 51, 85, 0.3);
         }
 
-        .announcement-banner {
+        /* ═══ SYS MESSAGE ═══ */
+        .sys-msg {
           position: fixed;
-          top: 65px;
+          top: 50px;
           left: 0;
-          width: 100%;
-          background: rgba(255, 152, 0, 0.15);
-          border-bottom: 1px solid #FF9800;
-          color: #FFB74D;
-          padding: 12px 20px;
-          text-align: center;
-          font-weight: 500;
+          right: 0;
           z-index: 90;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 8px 20px;
+          background: rgba(30, 22, 0, 0.92);
+          border-bottom: 1px solid var(--term-warn);
+          backdrop-filter: blur(6px);
+          font-size: 12px;
+          color: var(--term-warn);
+          text-shadow: 0 0 6px rgba(255, 176, 0, 0.5);
         }
-        .announcement-banner span {
-          font-size: 15px;
+        .sys-tag {
+          color: var(--term-warn);
+          font-weight: 700;
+          letter-spacing: 1px;
         }
+        .sys-text { color: #ffd580; }
 
-        .main-content {
+        /* ═══ MAIN ═══ */
+        .main-area {
           position: relative;
           z-index: 10;
-          padding: 30px;
-          padding-top: 90px;
-          padding-bottom: 80px;
           max-width: 1200px;
           margin: 0 auto;
-          animation: fadeInUp 0.5s ease both;
+          padding: 80px 24px 70px;
+          min-height: 100vh;
+          animation: term-fade-in 0.4s ease both;
         }
-
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
+        @keyframes term-fade-in {
+          from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .footer {
+        /* ═══ BOTTOM BAR ═══ */
+        .bottombar {
           position: fixed;
           bottom: 0;
           left: 0;
-          width: 100%;
+          right: 0;
           z-index: 100;
           display: flex;
-          justify-content: center;
           align-items: center;
-          gap: 8px;
-          padding: 15px 20px;
-          background: rgba(10, 10, 10, 0.9);
-          backdrop-filter: blur(10px);
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          justify-content: space-between;
+          gap: 16px;
+          padding: 8px 20px;
+          background: rgba(5, 8, 5, 0.95);
+          backdrop-filter: blur(8px);
+          border-top: 1px solid var(--term-border);
+          font-size: 11px;
+          color: var(--term-fg-dim);
+          letter-spacing: 0.5px;
         }
-        .footer-link {
-          background: transparent;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          padding: 4px 10px;
-          color: #aaa;
-          text-decoration: none;
-          transition: all 0.2s;
-          font-size: 12px;
-        }
-        .footer-link:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-          border-color: rgba(255, 255, 255, 0.3);
-        }
-        .footer-sep { color: #555; }
-
-        /* 💜 Кнопка автора — мягкая подсветка */
-        .footer-author-btn {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 12px 4px 9px;
-          background: rgba(168, 85, 247, 0.08);
-          border: 1px solid rgba(168, 85, 247, 0.3);
-          border-radius: 20px;
-          color: #C4A5F0;
-          text-decoration: none;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          transition: all 0.25s ease;
-          box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
-        }
-        .footer-author-btn:hover {
-          background: rgba(168, 85, 247, 0.18);
-          border-color: rgba(168, 85, 247, 0.6);
-          color: #fff;
-          transform: translateY(-1px);
-          box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
-        }
-        .author-glow-dot {
-          display: inline-block;
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: #C4A5F0;
-          box-shadow: 0 0 6px rgba(168, 85, 247, 0.7);
-          flex-shrink: 0;
-        }
-        .author-label {
-          white-space: nowrap;
-        }
-
-        /* 📌 Кнопки ToS и Privacy P справа-снизу */
-        .legal-links {
-          position: fixed;
-          bottom: 70px;
-          right: 20px;
-          z-index: 99;
+        .bb-left, .bb-right {
           display: flex;
+          align-items: center;
           gap: 8px;
-          animation: legalIn 0.6s ease 0.3s both;
+          flex-wrap: wrap;
         }
-        .legal-link {
+        .bb-tag {
+          display: inline-block;
+          padding: 0 5px;
+          border: 1px solid var(--term-border);
+          color: var(--term-fg);
+          font-size: 10px;
+          font-weight: 700;
+          margin-right: 2px;
+        }
+        .bb-sep { color: var(--term-border-bright); }
+        .bb-author {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          background: rgba(20, 20, 20, 0.85);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(168, 85, 247, 0.35);
-          border-radius: 20px;
-          color: #C4A5F0;
+          gap: 5px;
+          color: var(--term-accent);
           text-decoration: none;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          transition: all 0.25s ease;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+          transition: color 0.2s;
         }
-        .legal-link:hover {
-          background: rgba(88, 101, 242, 0.15);
-          border-color: #A855F7;
-          color: #fff;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
+        .bb-author:hover { color: var(--term-fg-bright); }
+        .bb-author-dot {
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: var(--term-accent);
+          box-shadow: 0 0 6px var(--term-accent);
         }
-        .legal-icon { font-size: 13px; }
+        .bb-legal {
+          color: var(--term-fg-dim);
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .bb-legal:hover { color: var(--term-fg); }
 
-        @keyframes legalIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        /* ═══ MOBILE ═══ */
+        @media (max-width: 900px) {
+          .topbar {
+            padding: 8px 12px;
+            gap: 8px;
+          }
+          .path { display: none; }
+          .topbar-nav { gap: 0; }
+          .nav-cmd { padding: 4px 8px; font-size: 11px; }
+          .clock { display: none; }
+          .main-area { padding: 72px 14px 68px; }
+          .bottombar {
+            padding: 6px 10px;
+            font-size: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+          .bb-left { display: none; }
         }
-
         @media (max-width: 500px) {
-          .legal-links {
-            bottom: 65px;
-            right: 10px;
-            gap: 6px;
-          }
-          .legal-link {
-            padding: 5px 10px;
-            font-size: 11px;
-          }
-          .nav-username {
-            display: none;
-          }
-          .footer-author-btn {
-            padding: 4px 10px 4px 8px;
-            font-size: 11px;
-          }
+          .status { display: none; }
+          .brand { font-size: 11px; }
         }
       `}</style>
     </div>
