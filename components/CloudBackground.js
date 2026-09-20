@@ -1,117 +1,94 @@
 import { useEffect, useRef } from 'react';
 
 export default function CloudBackground() {
-  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    // Загружаем p5.js с CDN
-    if (!window.p5) {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
-      script.onload = () => {
-        initSketch();
-      };
-      document.body.appendChild(script);
-    } else {
-      initSketch();
-    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
 
-    function initSketch() {
-      const sketch = (p) => {
-        let repel_radius;
-        let radius_;
-        let angle = 0;
-        let points = [];
-        const particles = 8000;
-        const attraction = 0.01;
-        const damping = 0.9;
-        const repel_strength = 28;
+    let w = 0, h = 0, dpr = 1;
+    let columns = [];
+    const fontSize = 16;
+    const chars = '01FIBFORMS01SYSTEMAUTHCONNECTERROROKREADY';
+    const charsArr = chars.split('');
 
-        p.setup = () => {
-          // Канвас на весь экран
-          p.createCanvas(window.innerWidth, window.innerHeight);
-          // Радиус облака зависит от размера экрана
-          radius_ = Math.min(window.innerWidth, window.innerHeight) / 3;
-          repel_radius = Math.min(window.innerWidth, window.innerHeight) / 10;
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-          p.pixelDensity(1);
-          p.stroke(255);
-          p.strokeWeight(2);
+      const cols = Math.floor(w / fontSize);
+      columns = new Array(cols).fill(0).map(() => Math.random() * -50);
+    };
 
-          for (let i = 0; i < particles; i++) {
-            points.push({
-              index: i,
-              pos: p.createVector(0, 0),
-              vel: p.createVector(0, 0)
-            });
-          }
-          angle = 0;
-          updateTargets();
-          for (let pt of points) pt.vel.set(0, 0);
-        };
+    resize();
+    window.addEventListener('resize', resize);
 
-        p.draw = () => {
-          p.background(0);
-          p.translate(p.width / 2, p.height / 2);
+    let rafId;
+    let lastFrame = 0;
+    const frameInterval = 50; // ~20 fps, плотнее для логина
 
-          let mouse = p.createVector(p.mouseX - p.width / 2, p.mouseY - p.height / 2);
+    const draw = (t) => {
+      rafId = requestAnimationFrame(draw);
+      if (t - lastFrame < frameInterval) return;
+      lastFrame = t;
 
-          for (let pt of points) {
-            let i = pt.index;
+      ctx.fillStyle = 'rgba(5, 8, 5, 0.12)';
+      ctx.fillRect(0, 0, w, h);
 
-            let homeX = p.sin(i + angle) * p.sin(i * i) * radius_;
-            let homeY = p.cos(i * i) * radius_;
-            let home = p.createVector(homeX, homeY);
+      ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
+      ctx.textBaseline = 'top';
 
-            let toHome = p5.Vector.sub(home, pt.pos);
-            let spring = toHome.mult(attraction);
-            pt.vel.add(spring);
+      for (let i = 0; i < columns.length; i++) {
+        const x = i * fontSize;
+        const y = columns[i] * fontSize;
+        const char = charsArr[Math.floor(Math.random() * charsArr.length)];
 
-            let awayFromMouse = p5.Vector.sub(pt.pos, mouse);
-            let distSq = awayFromMouse.magSq();
-            if (distSq > 0.1 && distSq < repel_radius * repel_radius) {
-              let distance = Math.sqrt(distSq);
-              awayFromMouse.normalize();
-              let repel = repel_strength * (1 - distance / repel_radius);
-              awayFromMouse.mult(repel);
-              pt.vel.add(awayFromMouse);
-            }
+        // Яркая голова
+        ctx.fillStyle = 'rgba(200, 255, 220, 1)';
+        ctx.shadowColor = 'rgba(51, 255, 85, 1)';
+        ctx.shadowBlur = 10;
+        ctx.fillText(char, x, y);
+        ctx.shadowBlur = 0;
 
-            pt.vel.mult(damping);
-            pt.pos.add(pt.vel);
-
-            p.point(pt.pos.x, pt.pos.y);
-          }
-          angle += 0.01;
-        };
-
-        p.windowResized = () => {
-          p.resizeCanvas(window.innerWidth, window.innerHeight);
-          radius_ = Math.min(window.innerWidth, window.innerHeight) / 3;
-          repel_radius = Math.min(window.innerWidth, window.innerHeight) / 10;
-        };
-
-        function updateTargets() {
-          for (let pt of points) {
-            let i = pt.index;
-            let x = p.sin(i + angle) * p.sin(i * i) * radius_;
-            let y = p.cos(i * i) * radius_;
-            pt.pos.set(x, y);
-          }
+        // Хвост
+        if (columns[i] > 1) {
+          ctx.fillStyle = 'rgba(51, 255, 85, 0.4)';
+          ctx.fillText(char, x, y - fontSize);
         }
-      };
 
-      const p5Instance = new p5(sketch, containerRef.current);
-      containerRef.current._p5Instance = p5Instance;
-    }
+        if (y > h && Math.random() > 0.97) {
+          columns[i] = 0;
+        }
+        columns[i] += 0.7;
+      }
+    };
+
+    rafId = requestAnimationFrame(draw);
 
     return () => {
-      if (containerRef.current?._p5Instance) {
-        containerRef.current._p5Instance.remove();
-        containerRef.current._p5Instance = null;
-      }
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
     };
   }, []);
 
-  return <div ref={containerRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        opacity: 0.5,
+      }}
+    />
+  );
 }
