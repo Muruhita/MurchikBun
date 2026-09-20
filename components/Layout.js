@@ -36,6 +36,7 @@ export default function Layout({ children }) {
   const tabs = [
     { name: 'Формы', path: '/dashboard', icon: '📝' },
     { name: 'Профиль', path: '/profile', icon: '👤' },
+    { name: 'Участники', path: '/members', icon: '👥' },
     { name: 'Справка', path: '/help', icon: '📖' },
     ...(isAdmin ? [{ name: 'Админ', path: '/admin', icon: '🛠️' }] : []),
   ];
