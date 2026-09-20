@@ -1,7 +1,6 @@
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
-
-const ADMIN_IDS = ['1018113109346504744', '555380718566506506', '260076815970729985'];
+import { ADMIN_IDS } from '../lib/admins';
 
 export default function Help() {
   const [content, setContent] = useState('Загрузка...');
