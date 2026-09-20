@@ -6,227 +6,254 @@ export default function Leh() {
 
   return (
     <Layout>
-      <div className="legal-page">
-        <div className="legal-container">
-          <h1>📜 Условия Пользования</h1>
-          <p className="updated">Последнее обновление: 22:22 18/09/2026</p>
+      <div className="l-header">
+        <div className="l-prompt">
+          <span className="l-sym">$</span>
+          <span className="l-cmd">cat /etc/legal/terms-of-service.md</span>
+          <span className="l-cursor">█</span>
+        </div>
+        <div className="l-meta">
+          <span className="l-meta-tag">v2026.09.18</span>
+        </div>
+      </div>
 
-          <section>
-            <h2>1. Общие положения</h2>
-            <p>
-              Настоящие Условия Пользования регулируют использование Discord-бота
-              <strong> FIB Forms</strong> и связанного с ним сайта. Используя бота или сайт,
-              вы подтверждаете, что ознакомились с условиями и согласны их соблюдать.
-            </p>
-            <p>
-              Если вы не согласны с любым пунктом — пожалуйста, прекратите использование.
-            </p>
-          </section>
+      <div className="l-wrap">
+        <div className="l-block">
+          <div className="l-block-head">
+            <span>legal::terms-of-service</span>
+            <span className="l-block-meta">READONLY</span>
+          </div>
 
-          <section>
-            <h2>2. Кто может пользоваться</h2>
-            <ul>
-              <li>Игроки игрового сервера Boston Majestic RP</li>
-              <li>Пользователи с действующим Discord-аккаунтом</li>
-            </ul>
-          </section>
+          <div className="l-block-body">
+            <h1 className="l-title">📜 Условия Пользования</h1>
+            <p className="l-meta-line">// last-updated: 22:22 18/09/2026</p>
 
-          <section>
-            <h2>3. Что можно делать</h2>
-            <ul>
-              <li>Подавать заявки через формы (повышение, отпуск, перевод и т.д.)</li>
-              <li>Заполнять профиль — ник и отдел</li>
-              <li>Просматривать справку, правила и общую информацию</li>
-              <li>Общаться с администрацией через тех. поддержку</li>
-              <li>Участвовать в мини-игре и других активностях бота</li>
-            </ul>
-          </section>
+            <section>
+              <h2>1. Общие положения</h2>
+              <p>Настоящие Условия Пользования регулируют использование Discord-бота <strong>FIB Forms</strong> и связанного с ним сайта. Используя бота или сайт, вы подтверждаете, что ознакомились с условиями и согласны их соблюдать.</p>
+              <p>Если вы не согласны с любым пунктом — пожалуйста, прекратите использование.</p>
+            </section>
 
-          <section>
-            <h2>4. Что запрещено</h2>
-            <p>При использовании бота и сайта <strong>запрещается</strong>:</p>
-            <ul>
-              <li>Отправлять спам, дублировать заявки, флудить формами</li>
-              <li>Использовать нецензурную лексику, оскорбления, угрозы</li>
-              <li>Пытаться взломать, обойти защиту или автоматизировать отправку</li>
-              <li>Выдавать себя за другого человека или администратора</li>
-              <li>Загружать файлы с запрещённым контентом, NSFW</li>
-              <li>Нарушать правила Discord и правила сервера Majestic RP</li>
-              <li>Использовать бота для любых целей, не связанных с фракцией</li>
-            </ul>
-            <p>
-              За нарушение — блокировка доступа <strong>на 7 дней</strong> или
-              <strong> навсегда</strong>, без предварительного уведомления.
-            </p>
-          </section>
+            <section>
+              <h2>2. Кто может пользоваться</h2>
+              <ul>
+                <li>Игроки игрового сервера Boston Majestic RP</li>
+                <li>Пользователи с действующим Discord-аккаунтом</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2>5. Ответственность пользователя</h2>
-            <p>Вы несёте ответственность за:</p>
-            <ul>
-              <li>Правильность данных, которые вы указываете в формах</li>
-              <li>Действия, совершённые с вашего Discord-аккаунта</li>
-              <li>Содержимое текстов и скриншотов, которые вы загружаете</li>
-              <li>Соблюдение правил фракции и сервера</li>
-            </ul>
-          </section>
+            <section>
+              <h2>3. Что можно делать</h2>
+              <ul>
+                <li>Подавать заявки через формы (повышение, отпуск, перевод и т.д.)</li>
+                <li>Заполнять профиль — ник и отдел</li>
+                <li>Просматривать справку, правила и общую информацию</li>
+                <li>Общаться с администрацией через тех. поддержку</li>
+                <li>Участвовать в мини-игре и других активностях бота</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2>6. Ответственность администрации</h2>
-            <p>
-              Администрация бота <strong>не несёт ответственности</strong> за:
-            </p>
-            <ul>
-              <li>Возможные технические сбои, или задержки</li>
-              <li>Решения, принятые по вашим заявкам</li>
-              <li>Действия третьих сервисов (Discord, Vercel, imgbb, Redis)</li>
-              <li>Ущерб, возникший из-за неправильно указанных данных</li>
-            </ul>
-            <p>
-              Бот предоставляется <strong>«как есть»</strong>. Мы стараемся поддерживать
-              его работу стабильной, но не гарантируем 100% доступность.
-            </p>
-          </section>
+            <section>
+              <h2>4. Что запрещено</h2>
+              <p>При использовании бота и сайта <strong>запрещается</strong>:</p>
+              <ul>
+                <li>Отправлять спам, дублировать заявки, флудить формами</li>
+                <li>Использовать нецензурную лексику, оскорбления, угрозы</li>
+                <li>Пытаться взломать, обойти защиту или автоматизировать отправку</li>
+                <li>Выдавать себя за другого человека или администратора</li>
+                <li>Загружать файлы с запрещённым контентом, NSFW</li>
+                <li>Нарушать правила Discord и правила сервера Majestic RP</li>
+                <li>Использовать бота для любых целей, не связанных с фракцией</li>
+              </ul>
+              <p>За нарушение — блокировка доступа <strong>на 7 дней</strong> или <strong>навсегда</strong>, без предварительного уведомления.</p>
+            </section>
 
-          <section>
-            <h2>7. Отправка заявок</h2>
-            <ul>
-              <li>Заявки уходят в Discord-каналы сервера фракции</li>
-              <li>Сроки рассмотрения определяет администрация/Вышестоящие фрации и не гарантируется</li>
-            </ul>
-          </section>
+            <section>
+              <h2>5. Ответственность пользователя</h2>
+              <p>Вы несёте ответственность за:</p>
+              <ul>
+                <li>Правильность данных, которые вы указываете в формах</li>
+                <li>Действия, совершённые с вашего Discord-аккаунта</li>
+                <li>Содержимое текстов и скриншотов, которые вы загружаете</li>
+                <li>Соблюдение правил фракции и сервера</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2>8. Блокировка и снятие</h2>
-            <p>
-              Администрация вправе заблокировать доступ пользователю за нарушение
-              условий. Срок блокировки — от 7 дней до бессрочной. Снятие возможно
-              через обращение в тех. поддержку или Discord.
-            </p>
-          </section>
+            <section>
+              <h2>6. Ответственность администрации</h2>
+              <p>Администрация бота <strong>не несёт ответственности</strong> за:</p>
+              <ul>
+                <li>Возможные технические сбои или задержки</li>
+                <li>Решения, принятые по вашим заявкам</li>
+                <li>Действия третьих сервисов (Discord, Vercel, imgbb, Redis)</li>
+                <li>Ущерб, возникший из-за неправильно указанных данных</li>
+              </ul>
+              <p>Бот предоставляется <strong>«как есть»</strong>. Мы стараемся поддерживать его работу стабильной, но не гарантируем 100% доступность.</p>
+            </section>
 
-          <section>
-            <h2>9. Изменение условий</h2>
-            <p>
-              Мы можем обновлять эти Условия. Продолжение использования бота
-              после изменений означает согласие с новой редакцией. Актуальная
-              версия всегда доступна на этой странице.
-            </p>
-          </section>
+            <section>
+              <h2>7. Отправка заявок</h2>
+              <ul>
+                <li>Заявки уходят в Discord-каналы сервера фракции</li>
+                <li>Сроки рассмотрения определяет администрация и не гарантируется</li>
+              </ul>
+            </section>
 
-          <section>
-            <h2>10. Контакты</h2>
-            <p>По всем вопросам обращайтесь:</p>
-            <ul>
-              <li><strong>Разработчик:</strong> Mura Kiratu</li>
-              <li><strong>Discord:</strong> @muruh1ta</li>
-              <li><strong>Email:</strong> <a href="mailto:murkilanki@gmail.com">murkilanki@gmail.com</a></li>
-            </ul>
-          </section>
+            <section>
+              <h2>8. Блокировка и снятие</h2>
+              <p>Администрация вправе заблокировать доступ пользователю за нарушение условий. Срок блокировки — от 7 дней до бессрочной. Снятие возможно через обращение в тех. поддержку или Discord.</p>
+            </section>
 
-          <button className="back-btn" onClick={() => router.push('/dashboard')}>
-            ← Вернуться на главную
-          </button>
+            <section>
+              <h2>9. Изменение условий</h2>
+              <p>Мы можем обновлять эти Условия. Продолжение использования бота после изменений означает согласие с новой редакцией. Актуальная версия всегда доступна на этой странице.</p>
+            </section>
+
+            <section>
+              <h2>10. Контакты</h2>
+              <p>По всем вопросам обращайтесь:</p>
+              <ul>
+                <li><strong>Разработчик:</strong> Mura Kiratu</li>
+                <li><strong>Discord:</strong> @muruh1ta</li>
+                <li><strong>Email:</strong> <a href="mailto:murkilanki@gmail.com">murkilanki@gmail.com</a></li>
+              </ul>
+            </section>
+
+            <button className="l-exit" onClick={() => router.push('/dashboard')}>
+              [ exit ]
+            </button>
+          </div>
         </div>
       </div>
 
       <style jsx>{`
-        .legal-page {
-          min-height: 100vh;
-          padding: 40px 20px;
-        }
-        .legal-container {
-          max-width: 820px;
-          margin: 0 auto;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          padding: 48px 56px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-          animation: fadeIn 0.5s ease;
-        }
-        h1 {
-          color: #fff;
-          font-size: 30px;
-          margin-bottom: 8px;
-        }
-        .updated {
-          color: #666;
+        .l-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 20px;
+          padding-bottom: 12px;
+          border-bottom: 1px dashed var(--term-border);
           font-size: 13px;
-          margin-bottom: 32px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
         }
-        section { margin-bottom: 28px; }
+        .l-prompt { display: flex; align-items: center; gap: 8px; }
+        .l-sym { color: var(--term-fg-dim); font-weight: 700; }
+        .l-cmd { color: var(--term-fg); font-weight: 600; }
+        .l-cursor { color: var(--term-fg); font-size: 12px; animation: term-blink 1.1s step-end infinite; }
+        @keyframes term-blink { 50% { opacity: 0; } }
+        .l-meta-tag {
+          padding: 2px 8px;
+          border: 1px solid var(--term-border);
+          color: var(--term-fg-dim);
+          font-size: 10px;
+          letter-spacing: 1px;
+        }
+
+        .l-wrap { max-width: 820px; margin: 0 auto; }
+        .l-block { background: var(--term-bg-panel); border: 1px solid var(--term-border); }
+        .l-block-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 16px;
+          border-bottom: 1px dashed var(--term-border);
+          font-size: 11px;
+          letter-spacing: 1.5px;
+          color: var(--term-fg-dim);
+          text-transform: uppercase;
+        }
+        .l-block-meta {
+          padding: 1px 8px;
+          border: 1px solid var(--term-border);
+          font-size: 9px;
+        }
+        .l-block-body { padding: 32px 40px; }
+
+        .l-title {
+          color: var(--term-fg);
+          font-size: 22px;
+          font-weight: 800;
+          margin: 0 0 6px;
+          letter-spacing: 0.5px;
+        }
+        .l-meta-line {
+          color: var(--term-fg-dimmer);
+          font-size: 11px;
+          margin: 0 0 26px;
+          padding-bottom: 16px;
+          border-bottom: 1px dashed var(--term-border);
+          letter-spacing: 0.5px;
+        }
+
+        section { margin-bottom: 24px; }
+
         h2 {
-          color: #C4A5F0;
-          font-size: 18px;
+          color: var(--term-fg);
+          font-size: 14px;
+          font-weight: 700;
           margin-bottom: 12px;
+          letter-spacing: 0.5px;
         }
+        h2::before { content: '## '; color: var(--term-fg-dimmer); }
+
         p {
-          color: #c8c8c8;
-          font-size: 15px;
+          color: var(--term-fg-dim);
+          font-size: 13px;
           line-height: 1.75;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
-        ul {
-          list-style: none;
-          padding-left: 0;
-          margin-bottom: 12px;
-        }
+
+        ul { list-style: none; padding: 0; margin-bottom: 10px; }
         li {
-          color: #c8c8c8;
-          font-size: 15px;
+          color: var(--term-fg-dim);
+          font-size: 13px;
           line-height: 1.75;
           padding-left: 22px;
           position: relative;
           margin-bottom: 4px;
         }
         li::before {
-          content: '•';
-          color: #A855F7;
+          content: '▸';
+          color: var(--term-fg-dimmer);
           position: absolute;
           left: 6px;
-          font-weight: bold;
         }
-        strong { color: #fff; }
+
+        strong { color: var(--term-fg); font-weight: 700; }
+
         a {
-          color: #A855F7;
+          color: var(--term-fg);
           text-decoration: none;
-          border-bottom: 1px dashed rgba(168, 85, 247, 0.4);
-          transition: all 0.2s;
+          border-bottom: 1px dashed var(--term-fg-dimmer);
+          transition: all 0.15s;
         }
-        a:hover {
-          color: #C4A5F0;
-          border-bottom-style: solid;
-        }
-        .back-btn {
+        a:hover { border-bottom-style: solid; }
+
+        .l-exit {
           display: block;
           width: 100%;
-          margin-top: 40px;
-          padding: 14px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          color: #fff;
-          border-radius: 10px;
+          margin-top: 32px;
+          padding: 12px;
+          background: transparent;
+          border: 1px solid var(--term-border-bright);
+          color: var(--term-fg-dim);
+          font-family: inherit;
+          font-size: 12px;
+          letter-spacing: 3px;
+          text-transform: uppercase;
           cursor: pointer;
-          font-size: 15px;
-          font-weight: 600;
-          transition: all 0.25s;
+          transition: all 0.15s;
         }
-        .back-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.3);
-          transform: translateY(-2px);
+        .l-exit:hover {
+          background: var(--term-fg);
+          color: var(--term-bg);
+          border-color: var(--term-fg);
         }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+
         @media (max-width: 600px) {
-          .legal-container { padding: 28px 22px; }
-          h1 { font-size: 22px; }
+          .l-block-body { padding: 22px 20px; }
+          .l-title { font-size: 18px; }
         }
       `}</style>
     </Layout>
