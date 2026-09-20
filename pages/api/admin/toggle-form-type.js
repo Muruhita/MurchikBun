@@ -1,7 +1,6 @@
 import { verifyToken } from '../../../lib/discord';
 import { toggleFormTypeStatus } from '../../../lib/antispam';
-
-const ADMIN_IDS = ['1018113109346504744', '555380718566506506', '260076815970729985'];
+import { ADMIN_IDS } from '../../../lib/admins';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
