@@ -1,108 +1,99 @@
 import { useEffect, useRef } from 'react';
 
 export default function ParticleBackground() {
-  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    // Загружаем p5.js с CDN
+    if (!window.p5) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      script.onload = () => {
+        initSketch();
+      };
+      document.body.appendChild(script);
+    } else {
+      initSketch();
+    }
 
-    let w = 0, h = 0, dpr = 1;
-    let columns = [];
-    const fontSize = 14;
-    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-    const charsArr = chars.split('');
+    function initSketch() {
+      const sketch = (p) => {
+        let particles = [];
+        let parNum = 1000; // Уменьшено для производительности
+        let noiseScale = 0.005;
+        let speed = 1.5;
 
-    const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        p.setup = () => {
+          p.createCanvas(window.innerWidth, window.innerHeight);
+          p.background(0, 0, 5);
+          for (let i = 0; i < parNum; i++) {
+            particles.push(new Particle());
+          }
+        };
 
-      const cols = Math.floor(w / fontSize);
-      columns = new Array(cols).fill(0).map(() => Math.random() * -100);
-    };
+        p.draw = () => {
+          p.fill(0, 0, 5, 10);
+          p.noStroke();
+          p.rect(0, 0, p.width, p.height);
 
-    resize();
-    window.addEventListener('resize', resize);
+          for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].show();
+          }
+        };
 
-    let rafId;
-    let lastFrame = 0;
-    const frameInterval = 60; // ms — 16 fps, редкий дождь
-    const headChars = new Set();
+        p.windowResized = () => {
+          p.resizeCanvas(window.innerWidth, window.innerHeight);
+        };
 
-    const draw = (t) => {
-      rafId = requestAnimationFrame(draw);
-      if (t - lastFrame < frameInterval) return;
-      lastFrame = t;
+        class Particle {
+          constructor() {
+            this.x = p.random(p.width);
+            this.y = p.random(p.height);
+            this.vx = p.random(-1, 1);
+            this.vy = p.random(-1, 1);
+            this.color = p.color(p.random(30, 80), p.random(100, 160), p.random(200, 255), 35);
+          }
 
-      // Медленное затухание
-      ctx.fillStyle = 'rgba(5, 8, 5, 0.14)';
-      ctx.fillRect(0, 0, w, h);
+          update() {
+            let angle = p.noise(this.x * noiseScale, this.y * noiseScale) * p.TWO_PI * 2;
+            this.vx += p.cos(angle) * 0.1;
+            this.vy += p.sin(angle) * 0.1;
 
-      ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
-      ctx.textBaseline = 'top';
+            let speedMag = p.sqrt(this.vx * this.vx + this.vy * this.vy);
+            if (speedMag > speed) {
+              this.vx = (this.vx / speedMag) * speed;
+              this.vy = (this.vy / speedMag) * speed;
+            }
 
-      for (let i = 0; i < columns.length; i++) {
-        const x = i * fontSize;
-        const y = columns[i] * fontSize;
+            this.x += this.vx;
+            this.y += this.vy;
 
-        const char = charsArr[Math.floor(Math.random() * charsArr.length)];
+            if (this.x < 0) this.x = p.width;
+            if (this.x > p.width) this.x = 0;
+            if (this.y < 0) this.y = p.height;
+            if (this.y > p.height) this.y = 0;
+          }
 
-        // Яркая «голова» капли
-        ctx.fillStyle = 'rgba(180, 255, 200, 0.95)';
-        ctx.shadowColor = 'rgba(51, 255, 85, 0.9)';
-        ctx.shadowBlur = 8;
-        ctx.fillText(char, x, y);
-
-        // Хвост — приглушённый зелёный
-        if (columns[i] > 1) {
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = 'rgba(51, 255, 85, 0.35)';
-          const tailChar = charsArr[Math.floor(Math.random() * charsArr.length)];
-          ctx.fillText(tailChar, x, y - fontSize);
+          show() {
+            p.stroke(this.color);
+            p.strokeWeight(1.5);
+            p.line(this.x, this.y, this.x - this.vx, this.y - this.vy);
+          }
         }
+      };
 
-        ctx.shadowBlur = 0;
-
-        // Ресет колонки
-        if (y > h && Math.random() > 0.975) {
-          columns[i] = 0;
-        }
-        columns[i] += 0.55;
-      }
-    };
-
-    rafId = requestAnimationFrame(draw);
+      const p5Instance = new p5(sketch, containerRef.current);
+      containerRef.current._p5Instance = p5Instance;
+    }
 
     return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', resize);
+      if (containerRef.current?._p5Instance) {
+        containerRef.current._p5Instance.remove();
+        containerRef.current._p5Instance = null;
+      }
     };
   }, []);
 
-  return (
-    <>
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: 'none',
-          opacity: 0.35,
-        }}
-      />
-      <style jsx>{`
-        :global(body) {
-          background: #050805;
-        }
-      `}</style>
-    </>
-  );
+  return <div ref={containerRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />;
 }
