@@ -1,7 +1,6 @@
 import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
-
-const ADMIN_IDS = ['1018113109346504744', '555380718566506506', '260076815970729985', '797111731864207360'];
+import { ADMIN_IDS } from '../lib/admins';
 
 export default function AdminPanel() {
   const [bannedUsers, setBannedUsers] = useState([]);
@@ -13,7 +12,6 @@ export default function AdminPanel() {
   const [announcementMsg, setAnnouncementMsg] = useState('');
   const [stats, setStats] = useState(null);
 
-  // Для блокировки
   const [banUserId, setBanUserId] = useState('');
   const [banReason, setBanReason] = useState('');
   const [banPermanent, setBanPermanent] = useState(false);
@@ -48,7 +46,7 @@ export default function AdminPanel() {
     };
 
     fetchAll();
-    const intervalId = setInterval(fetchAll, 5 * 60 * 1000);
+    const intervalId = setInterval(fetchAll, 10 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -281,24 +279,10 @@ export default function AdminPanel() {
       </div>
 
       <style jsx>{`
-        .admin-container {
-          max-width: 900px;
-          margin: 0 auto;
-        }
-        .section {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          padding: 25px;
-          border-radius: 15px;
-          margin-bottom: 25px;
-        }
-        .section h2 {
-          margin-bottom: 15px;
-          font-size: 20px;
-          color: #fff;
-        }
+        .admin-container { max-width: 900px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; margin-bottom: 25px; }
+        .section h2 { margin-bottom: 15px; font-size: 20px; color: #fff; }
 
-        /* 🧪 TestLik секция */
         .testlik-section {
           background: linear-gradient(135deg, rgba(88, 101, 242, 0.12), rgba(0, 229, 255, 0.08));
           border: 1px solid rgba(88, 101, 242, 0.4);
@@ -309,38 +293,16 @@ export default function AdminPanel() {
         .testlik-section::before {
           content: '';
           position: absolute;
-          top: -50px;
-          right: -50px;
-          width: 180px;
-          height: 180px;
+          top: -50px; right: -50px;
+          width: 180px; height: 180px;
           background: radial-gradient(circle, rgba(0, 229, 255, 0.25), transparent 70%);
           filter: blur(40px);
           pointer-events: none;
         }
-        .testlik-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          flex-wrap: wrap;
-          position: relative;
-          z-index: 1;
-        }
-        .testlik-info {
-          flex: 1;
-          min-width: 240px;
-        }
-        .testlik-info h2 {
-          margin-bottom: 8px;
-          color: #fff;
-          font-size: 20px;
-        }
-        .testlik-info p {
-          color: #8898c8;
-          font-size: 13px;
-          line-height: 1.5;
-          margin: 0;
-        }
+        .testlik-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; position: relative; z-index: 1; }
+        .testlik-info { flex: 1; min-width: 240px; }
+        .testlik-info h2 { margin-bottom: 8px; color: #fff; font-size: 20px; }
+        .testlik-info p { color: #8898c8; font-size: 13px; line-height: 1.5; margin: 0; }
         .testlik-btn {
           padding: 14px 26px;
           background: linear-gradient(135deg, #5865F2, #00E5FF);
@@ -357,204 +319,47 @@ export default function AdminPanel() {
           white-space: nowrap;
           box-shadow: 0 6px 22px rgba(88, 101, 242, 0.45);
         }
-        .testlik-btn:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 34px rgba(0, 229, 255, 0.6);
-        }
-        .testlik-btn:active {
-          transform: translateY(-1px);
-        }
+        .testlik-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 34px rgba(0, 229, 255, 0.6); }
+        .testlik-btn:active { transform: translateY(-1px); }
 
-        .announcement-textarea {
-          width: 100%;
-          background: rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 8px;
-          color: white;
-          padding: 12px;
-          font-size: 16px;
-          resize: vertical;
-        }
-        .announcement-actions {
-          margin-top: 10px;
-          display: flex;
-          gap: 10px;
-        }
-        .save-announcement-btn {
-          background: #5865F2;
-          color: white;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-        .clear-announcement-btn {
-          background: #f44336;
-          color: white;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-        .announcement-msg {
-          margin-top: 10px;
-          color: #4CAF50;
-        }
+        .announcement-textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; padding: 12px; font-size: 16px; resize: vertical; }
+        .announcement-actions { margin-top: 10px; display: flex; gap: 10px; }
+        .save-announcement-btn { background: #5865F2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .clear-announcement-btn { background: #f44336; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .announcement-msg { margin-top: 10px; color: #4CAF50; }
 
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-          gap: 15px;
-          margin-bottom: 20px;
-        }
-        .stat-card {
-          background: rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          padding: 15px;
-          text-align: center;
-        }
-        .stat-value {
-          display: block;
-          font-size: 32px;
-          font-weight: bold;
-          color: #5865F2;
-        }
-        .stat-label {
-          color: #aaa;
-          font-size: 14px;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 15px; text-align: center; }
+        .stat-value { display: block; font-size: 32px; font-weight: bold; color: #5865F2; }
+        .stat-label { color: #aaa; font-size: 14px; }
         .types-stats { margin-top: 15px; }
-        .types-stats h3 {
-          color: #ccc;
-          font-size: 16px;
-          margin-bottom: 10px;
-        }
-        .types-stats ul {
-          list-style: none;
-          padding: 0;
-        }
-        .types-stats li {
-          background: rgba(255,255,255,0.05);
-          padding: 8px;
-          border-radius: 8px;
-          margin-bottom: 5px;
-          color: #ccc;
-        }
+        .types-stats h3 { color: #ccc; font-size: 16px; margin-bottom: 10px; }
+        .types-stats ul { list-style: none; padding: 0; }
+        .types-stats li { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 5px; color: #ccc; }
         .types-stats li strong { color: #fff; }
 
-        input[type="text"] {
-          width: 100%;
-          padding: 12px;
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: white;
-          border-radius: 8px;
-          margin-bottom: 10px;
-          box-sizing: border-box;
-        }
+        input[type="text"] { width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
 
-        .permanent-checkbox {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #ff8080;
-          font-size: 14px;
-          font-weight: 600;
-          margin: 8px 0 14px;
-          cursor: pointer;
-          user-select: none;
-        }
-        .permanent-checkbox input[type="checkbox"] {
-          width: 18px;
-          height: 18px;
-          cursor: pointer;
-          accent-color: #ff4444;
-          margin: 0;
-        }
+        .permanent-checkbox { display: flex; align-items: center; gap: 10px; color: #ff8080; font-size: 14px; font-weight: 600; margin: 8px 0 14px; cursor: pointer; user-select: none; }
+        .permanent-checkbox input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #ff4444; margin: 0; }
 
-        button {
-          padding: 12px 20px;
-          border-radius: 8px;
-          border: none;
-          cursor: pointer;
-          font-weight: bold;
-          transition: all 0.3s;
-          margin-right: 10px;
-        }
-        .ban-btn {
-          background: #f44336;
-          color: white;
-        }
+        button { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: all 0.3s; margin-right: 10px; }
+        .ban-btn { background: #f44336; color: white; }
         .ban-btn:hover { background: #d32f2f; }
-        .stop-btn {
-          background: #ff4444;
-          color: white;
-        }
-        .start-btn {
-          background: #4CAF50;
-          color: white;
-        }
-        .status-text {
-          margin-top: 10px;
-          color: #aaa;
-        }
-        .status-msg {
-          margin-top: 10px;
-          color: #4CAF50;
-        }
-        .banned-list {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-        .banned-item {
-          background: rgba(255,255,255,0.05);
-          padding: 10px;
-          border-radius: 8px;
-          margin-bottom: 10px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 15px;
-          font-size: 14px;
-          color: #ccc;
-          flex-wrap: wrap;
-        }
-        .banned-item-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
+        .stop-btn { background: #ff4444; color: white; }
+        .start-btn { background: #4CAF50; color: white; }
+        .status-text { margin-top: 10px; color: #aaa; }
+        .status-msg { margin-top: 10px; color: #4CAF50; }
+        .banned-list { max-height: 300px; overflow-y: auto; }
+        .banned-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 15px; font-size: 14px; color: #ccc; flex-wrap: wrap; }
+        .banned-item-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .banned-id { color: #ccc; }
-        .permanent-badge {
-          background: rgba(255, 60, 60, 0.2);
-          border: 1px solid #ff4444;
-          color: #ff8080;
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-        .banned-reason {
-          color: #aaa;
-          font-size: 13px;
-          text-align: right;
-          flex: 1;
-          min-width: 200px;
-        }
+        .permanent-badge { background: rgba(255, 60, 60, 0.2); border: 1px solid #ff4444; color: #ff8080; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .banned-reason { color: #aaa; font-size: 13px; text-align: right; flex: 1; min-width: 200px; }
 
         @media (max-width: 600px) {
-          .testlik-row {
-            flex-direction: column;
-            text-align: center;
-          }
-          .testlik-btn {
-            width: 100%;
-            justify-content: center;
-          }
+          .testlik-row { flex-direction: column; text-align: center; }
+          .testlik-btn { width: 100%; justify-content: center; }
         }
       `}</style>
     </Layout>
