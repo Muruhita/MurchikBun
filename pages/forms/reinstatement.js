@@ -78,12 +78,13 @@ export default function ReinstatementForm() {
               <input type="text" value={formData.rank} onChange={(e) => setFormData({...formData, rank: e.target.value})} required />
             </div>
             <div className="form-group">
-              <label>Доказательства (скрин последнего повышения + скрин увольнения)</label>
+              <label>Доказательства(Скрин последнего повышения + скрин увольнения).</label>
               <textarea value={formData.proof} onChange={(e) => setFormData({...formData, proof: e.target.value})} required rows="4" placeholder="Ссылка на скриншоты" />
             </div>
             <div className="form-group">
               <label>Уволен после Ban/Warn?</label>
               <select value={formData.wasBannedWarned} onChange={(e) => setFormData({...formData, wasBannedWarned: e.target.value})}>
+                <option value="idk">Непомню</option>
                 <option value="no">Нет</option>
                 <option value="yes">Да</option>
               </select>
