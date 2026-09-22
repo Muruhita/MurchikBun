@@ -94,6 +94,9 @@ export default function Layout({ children }) {
       </footer>
 
       <div className="legal-links">
+        <a href="/dish" className="legal-link legal-link-discord" title="Проблемы с Discord?">
+          <span className="legal-icon">⚠️</span> Проблемы с Discord?
+        </a>
         <a href="/leh" className="legal-link" title="Условия пользования">
           <span className="legal-icon">📓</span> ToS
         </a>
@@ -289,7 +292,7 @@ export default function Layout({ children }) {
           white-space: nowrap;
         }
 
-        /* 📌 Кнопки ToS и Privacy P справа-снизу */
+        /* 📌 Кнопки справа-снизу */
         .legal-links {
           position: fixed;
           bottom: 70px;
@@ -325,6 +328,20 @@ export default function Layout({ children }) {
         }
         .legal-icon { font-size: 13px; }
 
+        /* 🔴 Красная кнопка «Проблемы с Discord?» */
+        .legal-link-discord {
+          background: rgba(255, 60, 60, 0.15);
+          border-color: rgba(255, 60, 60, 0.6);
+          color: #ff8080;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 60, 60, 0.35);
+        }
+        .legal-link-discord:hover {
+          background: rgba(255, 60, 60, 0.3);
+          border-color: #ff4444;
+          color: #fff;
+          box-shadow: 0 8px 25px rgba(255, 60, 60, 0.5), 0 0 20px rgba(255, 60, 60, 0.4);
+        }
+
         @keyframes legalIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -335,6 +352,8 @@ export default function Layout({ children }) {
             bottom: 65px;
             right: 10px;
             gap: 6px;
+            flex-direction: column;
+            align-items: flex-end;
           }
           .legal-link {
             padding: 5px 10px;
