@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 
 const EDITOR_ID = '1018113109346504744';
 
-// Достать YouTube ID из разных форматов ссылок
 function extractYouTubeId(url) {
   if (!url) return null;
   const patterns = [
@@ -24,13 +23,18 @@ function extractYouTubeId(url) {
 export default function DisH() {
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ youtube: '', link: '', linkLabel: 'Дополнительная ссылка' });
+  const [data, setData] = useState({
+    youtube: '',
+    link: '',
+    linkLabel: 'Дополнительная ссылка',
+    text: ''
+  });
   const [editMode, setEditMode] = useState(false);
 
-  // форма редактирования
   const [formYoutube, setFormYoutube] = useState('');
   const [formLink, setFormLink] = useState('');
   const [formLinkLabel, setFormLinkLabel] = useState('');
+  const [formText, setFormText] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -44,6 +48,7 @@ export default function DisH() {
         setFormYoutube(d.youtube || '');
         setFormLink(d.link || '');
         setFormLinkLabel(d.linkLabel || 'Дополнительная ссылка');
+        setFormText(d.text || '');
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -67,7 +72,8 @@ export default function DisH() {
         body: JSON.stringify({
           youtube: formYoutube,
           link: formLink,
-          linkLabel: formLinkLabel
+          linkLabel: formLinkLabel,
+          text: formText
         })
       });
       const d = await res.json();
@@ -91,6 +97,7 @@ export default function DisH() {
     setFormYoutube(data.youtube || '');
     setFormLink(data.link || '');
     setFormLinkLabel(data.linkLabel || 'Дополнительная ссылка');
+    setFormText(data.text || '');
     setMsg('');
   };
 
@@ -104,7 +111,7 @@ export default function DisH() {
           Если у вас возникли проблемы с Discord — посмотрите видео-инструкцию ниже
         </p>
 
-        {/* Инфо-блок */}
+        {/* Info */}
         <div className="dish-info">
           <div className="dish-info-icon">⚠️</div>
           <div className="dish-info-text">
@@ -144,6 +151,18 @@ export default function DisH() {
               </div>
             )}
 
+            {/* 📝 Текст под видео */}
+            {data.text && (
+              <div className="dish-text-block">
+                <div className="dish-text-header">
+                  <span className="dish-text-line" />
+                  <span className="dish-text-title">📝 Дополнительная информация</span>
+                  <span className="dish-text-line" />
+                </div>
+                <div className="dish-text-content">{data.text}</div>
+              </div>
+            )}
+
             {/* Вторая ссылка */}
             {data.link && (
               <a
@@ -160,7 +179,7 @@ export default function DisH() {
           </>
         )}
 
-        {/* 🔒 Редактирование — только для одного ID */}
+        {/* 🔒 Редактирование */}
         {isEditor && (
           <div className="dish-editor">
             <div className="dish-editor-header">
@@ -187,6 +206,18 @@ export default function DisH() {
                     placeholder="https://www.youtube.com/watch?v=... или https://youtu.be/..."
                   />
                   <small>Поддерживаются: youtube.com/watch, youtu.be, /shorts/, /embed/</small>
+                </div>
+
+                {/* 📝 Текст под видео */}
+                <div className="dish-field">
+                  <label>Текст под видео</label>
+                  <textarea
+                    value={formText}
+                    onChange={(e) => setFormText(e.target.value)}
+                    rows="6"
+                    placeholder="Введите текст, который появится ниже видео. Можно использовать переносы строк."
+                  />
+                  <small>Обычный текст · переносы строк сохраняются · пустое поле = скрыть блок</small>
                 </div>
 
                 <div className="dish-field">
@@ -242,7 +273,6 @@ export default function DisH() {
           margin-bottom: 30px;
         }
 
-        /* Info */
         .dish-info {
           display: flex;
           gap: 14px;
@@ -263,11 +293,8 @@ export default function DisH() {
           font-size: 13px;
           line-height: 1.6;
         }
-        .dish-info-text strong {
-          color: #ff8080;
-        }
+        .dish-info-text strong { color: #ff8080; }
 
-        /* Loading */
         .dish-loading {
           text-align: center;
           padding: 60px 20px;
@@ -284,7 +311,6 @@ export default function DisH() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Video */
         .dish-video {
           margin-bottom: 22px;
           border: 1px solid rgba(255, 60, 60, 0.4);
@@ -329,7 +355,41 @@ export default function DisH() {
           display: block;
         }
 
-        /* Empty */
+        /* 📝 Text block */
+        .dish-text-block {
+          margin-bottom: 22px;
+          padding: 22px 26px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 14px;
+        }
+        .dish-text-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+        .dish-text-line {
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 60, 60, 0.5), transparent);
+        }
+        .dish-text-title {
+          color: #ff8080;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          flex-shrink: 0;
+        }
+        .dish-text-content {
+          color: #d0d0d0;
+          font-size: 15px;
+          line-height: 1.75;
+          white-space: pre-line;
+          text-align: left;
+        }
+
         .dish-empty {
           text-align: center;
           padding: 50px 20px;
@@ -345,7 +405,6 @@ export default function DisH() {
           opacity: 0.6;
         }
 
-        /* Link button */
         .dish-link-btn {
           display: flex;
           align-items: center;
@@ -450,7 +509,8 @@ export default function DisH() {
           font-size: 11px;
           margin-top: 4px;
         }
-        .dish-field input {
+        .dish-field input,
+        .dish-field textarea {
           padding: 12px 14px;
           background: rgba(0, 0, 0, 0.4);
           border: 1px solid rgba(255, 255, 255, 0.15);
@@ -460,12 +520,21 @@ export default function DisH() {
           font-size: 14px;
           outline: none;
           transition: border-color 0.2s;
+          box-sizing: border-box;
+          width: 100%;
         }
-        .dish-field input:focus {
+        .dish-field textarea {
+          resize: vertical;
+          min-height: 120px;
+          line-height: 1.6;
+        }
+        .dish-field input:focus,
+        .dish-field textarea:focus {
           border-color: #A855F7;
           box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
         }
-        .dish-field input::placeholder { color: #555; }
+        .dish-field input::placeholder,
+        .dish-field textarea::placeholder { color: #555; }
 
         .dish-save-btn {
           padding: 14px;
@@ -501,6 +570,8 @@ export default function DisH() {
           .dish-subtitle { font-size: 13px; }
           .dish-info { padding: 12px 14px; }
           .dish-editor-header { flex-direction: column; align-items: flex-start; }
+          .dish-text-block { padding: 18px; }
+          .dish-text-content { font-size: 14px; }
         }
       `}</style>
     </Layout>
