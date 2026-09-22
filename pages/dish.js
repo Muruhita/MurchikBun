@@ -3,37 +3,16 @@ import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 
 const EDITOR_ID = '1018113109346504744';
-
-function extractYouTubeId(url) {
-  if (!url) return null;
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
-    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
+const MAX_LINKS = 10;
 
 export default function DisH() {
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    youtube: '',
-    link: '',
-    linkLabel: 'Дополнительная ссылка',
-    text: ''
-  });
+  const [data, setData] = useState({ links: [], text: '' });
   const [editMode, setEditMode] = useState(false);
 
-  const [formYoutube, setFormYoutube] = useState('');
-  const [formLink, setFormLink] = useState('');
-  const [formLinkLabel, setFormLinkLabel] = useState('');
+  // Форма редактирования
+  const [formLinks, setFormLinks] = useState([{ label: '', url: '' }]);
   const [formText, setFormText] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -44,10 +23,9 @@ export default function DisH() {
     fetch('/api/dish')
       .then(res => res.json())
       .then(d => {
-        setData(d);
-        setFormYoutube(d.youtube || '');
-        setFormLink(d.link || '');
-        setFormLinkLabel(d.linkLabel || 'Дополнительная ссылка');
+        const links = Array.isArray(d.links) ? d.links : [];
+        setData({ links, text: d.text || '' });
+        setFormLinks(links.length > 0 ? links : [{ label: '', url: '' }]);
         setFormText(d.text || '');
         setLoading(false);
       })
@@ -62,6 +40,21 @@ export default function DisH() {
     load();
   }, []);
 
+  const addLink = () => {
+    if (formLinks.length >= MAX_LINKS) return;
+    setFormLinks([...formLinks, { label: '', url: '' }]);
+  };
+
+  const removeLink = (idx) => {
+    setFormLinks(formLinks.filter((_, i) => i !== idx));
+  };
+
+  const updateLink = (idx, field, value) => {
+    const next = [...formLinks];
+    next[idx][field] = value;
+    setFormLinks(next);
+  };
+
   const save = async () => {
     setSaving(true);
     setMsg('');
@@ -69,12 +62,7 @@ export default function DisH() {
       const res = await fetch('/api/dish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          youtube: formYoutube,
-          link: formLink,
-          linkLabel: formLinkLabel,
-          text: formText
-        })
+        body: JSON.stringify({ links: formLinks, text: formText })
       });
       const d = await res.json();
       if (res.ok) {
@@ -94,31 +82,18 @@ export default function DisH() {
 
   const cancelEdit = () => {
     setEditMode(false);
-    setFormYoutube(data.youtube || '');
-    setFormLink(data.link || '');
-    setFormLinkLabel(data.linkLabel || 'Дополнительная ссылка');
+    setFormLinks(data.links.length > 0 ? data.links : [{ label: '', url: '' }]);
     setFormText(data.text || '');
     setMsg('');
   };
-
-  const ytId = extractYouTubeId(data.youtube);
 
   return (
     <Layout>
       <div className="dish-container">
         <h1 className="dish-title">🔴 Проблемы с Discord?</h1>
         <p className="dish-subtitle">
-          Если у вас возникли проблемы с Discord — посмотрите видео-инструкцию ниже
+          Полезные ссылки и информация по решению проблем с Discord
         </p>
-
-        {/* Info */}
-        <div className="dish-info">
-          <div className="dish-info-icon">⚠️</div>
-          <div className="dish-info-text">
-            <strong>Частые проблемы:</strong> не заходит в аккаунт, не работает авторизация,
-            ошибки подключения к серверам Discord. Решения — в видео ниже.
-          </div>
-        </div>
 
         {loading ? (
           <div className="dish-loading">
@@ -127,59 +102,41 @@ export default function DisH() {
           </div>
         ) : (
           <>
-            {/* YouTube видео */}
-            {ytId ? (
-              <div className="dish-video">
-                <div className="dish-video-header">
-                  <span className="dish-video-dot" />
-                  <span>Видео-инструкция</span>
-                </div>
-                <div className="dish-video-frame">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${ytId}`}
-                    title="YouTube video"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+            {/* ─── Ссылки ─── */}
+            {data.links.length > 0 ? (
+              <div className="dish-links">
+                {data.links.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="dish-link-btn"
+                    style={{ animationDelay: `${i * 0.06}s` }}
+                  >
+                    <span className="dish-link-num">[{String(i + 1).padStart(2, '0')}]</span>
+                    <span className="dish-link-label">{link.label}</span>
+                    <span className="dish-link-arrow">→</span>
+                  </a>
+                ))}
               </div>
             ) : (
               <div className="dish-empty">
-                <div className="dish-empty-icon">📺</div>
-                <p>Видео пока не добавлено</p>
+                <div className="dish-empty-icon">🔗</div>
+                <p>Ссылки пока не добавлены</p>
               </div>
             )}
 
-            {/* 📝 Текст под видео */}
+            {/* ─── Текст ниже ─── */}
             {data.text && (
               <div className="dish-text-block">
-                <div className="dish-text-header">
-                  <span className="dish-text-line" />
-                  <span className="dish-text-title">📝 Дополнительная информация</span>
-                  <span className="dish-text-line" />
-                </div>
                 <div className="dish-text-content">{data.text}</div>
               </div>
-            )}
-
-            {/* Вторая ссылка */}
-            {data.link && (
-              <a
-                href={data.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="dish-link-btn"
-              >
-                <span className="dish-link-icon">🔗</span>
-                <span>{data.linkLabel || 'Дополнительная ссылка'}</span>
-                <span className="dish-link-arrow">→</span>
-              </a>
             )}
           </>
         )}
 
-        {/* 🔒 Редактирование */}
+        {/* 🔒 Редактор */}
         {isEditor && (
           <div className="dish-editor">
             <div className="dish-editor-header">
@@ -197,48 +154,60 @@ export default function DisH() {
 
             {editMode && (
               <div className="dish-editor-body">
-                <div className="dish-field">
-                  <label>Ссылка на YouTube видео</label>
-                  <input
-                    type="text"
-                    value={formYoutube}
-                    onChange={(e) => setFormYoutube(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=... или https://youtu.be/..."
-                  />
-                  <small>Поддерживаются: youtube.com/watch, youtu.be, /shorts/, /embed/</small>
+                {/* Ссылки */}
+                <div className="dish-section-label">
+                  Ссылки ({formLinks.length}/{MAX_LINKS})
                 </div>
 
-                {/* 📝 Текст под видео */}
-                <div className="dish-field">
-                  <label>Текст под видео</label>
-                  <textarea
-                    value={formText}
-                    onChange={(e) => setFormText(e.target.value)}
-                    rows="6"
-                    placeholder="Введите текст, который появится ниже видео. Можно использовать переносы строк."
-                  />
-                  <small>Обычный текст · переносы строк сохраняются · пустое поле = скрыть блок</small>
-                </div>
+                {formLinks.map((link, idx) => (
+                  <div key={idx} className="dish-link-row">
+                    <span className="dish-link-row-num">[{idx + 1}]</span>
+                    <div className="dish-link-row-fields">
+                      <input
+                        type="text"
+                        value={link.label}
+                        onChange={(e) => updateLink(idx, 'label', e.target.value)}
+                        placeholder="Название ссылки"
+                      />
+                      <input
+                        type="text"
+                        value={link.url}
+                        onChange={(e) => updateLink(idx, 'url', e.target.value)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="dish-link-remove"
+                      onClick={() => removeLink(idx)}
+                      title="Удалить"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
 
-                <div className="dish-field">
-                  <label>Вторая ссылка (URL)</label>
-                  <input
-                    type="text"
-                    value={formLink}
-                    onChange={(e) => setFormLink(e.target.value)}
-                    placeholder="https://example.com/..."
-                  />
-                </div>
+                {formLinks.length < MAX_LINKS && (
+                  <button
+                    type="button"
+                    className="dish-add-btn"
+                    onClick={addLink}
+                  >
+                    + Добавить ссылку
+                  </button>
+                )}
 
-                <div className="dish-field">
-                  <label>Название второй ссылки</label>
-                  <input
-                    type="text"
-                    value={formLinkLabel}
-                    onChange={(e) => setFormLinkLabel(e.target.value)}
-                    placeholder="Например: Инструкция от Discord"
-                  />
+                {/* Текст */}
+                <div className="dish-section-label" style={{ marginTop: 8 }}>
+                  Текст ниже
                 </div>
+                <textarea
+                  value={formText}
+                  onChange={(e) => setFormText(e.target.value)}
+                  rows="6"
+                  placeholder="Введите текст, который появится под ссылками. Переносы строк сохраняются."
+                  className="dish-textarea"
+                />
 
                 <button className="dish-save-btn" onClick={save} disabled={saving}>
                   {saving ? '⏳ Сохранение...' : '💾 Сохранить'}
@@ -273,28 +242,6 @@ export default function DisH() {
           margin-bottom: 30px;
         }
 
-        .dish-info {
-          display: flex;
-          gap: 14px;
-          padding: 16px 20px;
-          background: rgba(255, 60, 60, 0.08);
-          border: 1px solid rgba(255, 60, 60, 0.35);
-          border-left: 3px solid #ff4444;
-          border-radius: 10px;
-          margin-bottom: 26px;
-        }
-        .dish-info-icon {
-          font-size: 24px;
-          flex-shrink: 0;
-          line-height: 1;
-        }
-        .dish-info-text {
-          color: #e0e0e0;
-          font-size: 13px;
-          line-height: 1.6;
-        }
-        .dish-info-text strong { color: #ff8080; }
-
         .dish-loading {
           text-align: center;
           padding: 60px 20px;
@@ -311,85 +258,67 @@ export default function DisH() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .dish-video {
-          margin-bottom: 22px;
-          border: 1px solid rgba(255, 60, 60, 0.4);
-          border-radius: 14px;
-          overflow: hidden;
-          background: #0a0a0a;
-          box-shadow: 0 10px 40px rgba(255, 60, 60, 0.15);
-        }
-        .dish-video-header {
+        /* ── Ссылки ── */
+        .dish-links {
           display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 18px;
-          background: rgba(255, 60, 60, 0.08);
-          border-bottom: 1px solid rgba(255, 60, 60, 0.25);
-          color: #fff;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.5px;
-        }
-        .dish-video-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #ff4444;
-          box-shadow: 0 0 10px #ff4444;
-          animation: pulse 1.8s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        .dish-video-frame {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          background: #000;
-        }
-        .dish-video-frame iframe {
-          width: 100%;
-          height: 100%;
-          display: block;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 26px;
         }
 
-        /* 📝 Text block */
-        .dish-text-block {
-          margin-bottom: 22px;
-          padding: 22px 26px;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 14px;
-        }
-        .dish-text-header {
-          display: flex;
+        .dish-link-btn {
+          display: grid;
+          grid-template-columns: 60px 1fr 30px;
           align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
+          gap: 14px;
+          padding: 18px 22px;
+          background: linear-gradient(135deg, rgba(255, 60, 60, 0.1), rgba(255, 60, 60, 0.04));
+          border: 1px solid rgba(255, 60, 60, 0.4);
+          border-radius: 12px;
+          color: #fff;
+          text-decoration: none;
+          font-size: 15px;
+          font-weight: 600;
+          transition: all 0.25s;
+          opacity: 0;
+          animation: linkIn 0.45s ease forwards;
         }
-        .dish-text-line {
-          flex: 1;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255, 60, 60, 0.5), transparent);
+        @keyframes linkIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        .dish-text-title {
-          color: #ff8080;
+        .dish-link-btn:hover {
+          background: rgba(255, 60, 60, 0.2);
+          border-color: #ff4444;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 30px rgba(255, 60, 60, 0.3);
+        }
+        .dish-link-btn:hover .dish-link-arrow {
+          transform: translateX(4px);
+        }
+
+        .dish-link-num {
+          color: #ff4444;
           font-size: 12px;
           font-weight: 700;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          flex-shrink: 0;
+          letter-spacing: 1px;
+          opacity: 0.9;
         }
-        .dish-text-content {
-          color: #d0d0d0;
-          font-size: 15px;
-          line-height: 1.75;
-          white-space: pre-line;
+        .dish-link-label {
+          color: #fff;
           text-align: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .dish-link-arrow {
+          color: #ff4444;
+          font-size: 18px;
+          transition: transform 0.2s;
+          text-align: right;
         }
 
+        /* ── Empty ── */
         .dish-empty {
           text-align: center;
           padding: 50px 20px;
@@ -405,39 +334,24 @@ export default function DisH() {
           opacity: 0.6;
         }
 
-        .dish-link-btn {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 16px 20px;
-          background: linear-gradient(135deg, rgba(255, 60, 60, 0.12), rgba(255, 60, 60, 0.05));
-          border: 1px solid rgba(255, 60, 60, 0.4);
-          border-radius: 12px;
-          color: #fff;
-          text-decoration: none;
-          font-size: 15px;
-          font-weight: 600;
-          transition: all 0.25s;
+        /* ── Текст ── */
+        .dish-text-block {
           margin-bottom: 22px;
+          padding: 22px 26px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-left: 3px solid #ff4444;
+          border-radius: 12px;
         }
-        .dish-link-btn:hover {
-          background: rgba(255, 60, 60, 0.2);
-          border-color: #ff4444;
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(255, 60, 60, 0.3);
-        }
-        .dish-link-icon { font-size: 18px; }
-        .dish-link-arrow {
-          margin-left: auto;
-          color: #ff4444;
-          font-size: 18px;
-          transition: transform 0.2s;
-        }
-        .dish-link-btn:hover .dish-link-arrow {
-          transform: translateX(4px);
+        .dish-text-content {
+          color: #d0d0d0;
+          font-size: 15px;
+          line-height: 1.75;
+          white-space: pre-line;
+          text-align: left;
         }
 
-        /* Editor */
+        /* ── Editor ── */
         .dish-editor {
           margin-top: 30px;
           background: rgba(168, 85, 247, 0.05);
@@ -493,24 +407,104 @@ export default function DisH() {
           padding: 20px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 14px;
         }
 
-        .dish-field { display: flex; flex-direction: column; }
-        .dish-field label {
-          display: block;
-          color: #aaa;
-          font-size: 13px;
-          margin-bottom: 6px;
-          font-weight: 600;
-        }
-        .dish-field small {
-          color: #666;
-          font-size: 11px;
+        .dish-section-label {
+          color: #C4A5F0;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
           margin-top: 4px;
         }
-        .dish-field input,
-        .dish-field textarea {
+
+        /* ── Строка ссылки в редакторе ── */
+        .dish-link-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+
+        .dish-link-row-num {
+          color: #C4A5F0;
+          font-size: 12px;
+          font-weight: 700;
+          padding-top: 12px;
+          min-width: 30px;
+          flex-shrink: 0;
+        }
+
+        .dish-link-row-fields {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .dish-link-row-fields input {
+          padding: 10px 12px;
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #fff;
+          border-radius: 8px;
+          font-family: inherit;
+          font-size: 13px;
+          outline: none;
+          transition: border-color 0.2s;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .dish-link-row-fields input:focus {
+          border-color: #A855F7;
+          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+        }
+        .dish-link-row-fields input::placeholder { color: #555; }
+
+        .dish-link-remove {
+          width: 34px;
+          height: 34px;
+          background: rgba(255, 60, 60, 0.1);
+          border: 1px solid rgba(255, 60, 60, 0.4);
+          color: #ff8080;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          font-family: inherit;
+          transition: all 0.2s;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .dish-link-remove:hover {
+          background: rgba(255, 60, 60, 0.3);
+          color: #fff;
+          border-color: #ff4444;
+        }
+
+        .dish-add-btn {
+          padding: 10px 16px;
+          background: rgba(168, 85, 247, 0.1);
+          border: 1px dashed rgba(168, 85, 247, 0.5);
+          color: #C4A5F0;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.2s;
+        }
+        .dish-add-btn:hover {
+          background: rgba(168, 85, 247, 0.2);
+          color: #fff;
+          border-style: solid;
+        }
+
+        .dish-textarea {
           padding: 12px 14px;
           background: rgba(0, 0, 0, 0.4);
           border: 1px solid rgba(255, 255, 255, 0.15);
@@ -520,21 +514,17 @@ export default function DisH() {
           font-size: 14px;
           outline: none;
           transition: border-color 0.2s;
-          box-sizing: border-box;
-          width: 100%;
-        }
-        .dish-field textarea {
           resize: vertical;
           min-height: 120px;
           line-height: 1.6;
+          width: 100%;
+          box-sizing: border-box;
         }
-        .dish-field input:focus,
-        .dish-field textarea:focus {
+        .dish-textarea:focus {
           border-color: #A855F7;
           box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
         }
-        .dish-field input::placeholder,
-        .dish-field textarea::placeholder { color: #555; }
+        .dish-textarea::placeholder { color: #555; }
 
         .dish-save-btn {
           padding: 14px;
@@ -568,10 +558,24 @@ export default function DisH() {
         @media (max-width: 500px) {
           .dish-title { font-size: 24px; }
           .dish-subtitle { font-size: 13px; }
-          .dish-info { padding: 12px 14px; }
           .dish-editor-header { flex-direction: column; align-items: flex-start; }
           .dish-text-block { padding: 18px; }
           .dish-text-content { font-size: 14px; }
+          .dish-link-btn {
+            grid-template-columns: 45px 1fr 25px;
+            padding: 14px 16px;
+            font-size: 14px;
+          }
+          .dish-link-row {
+            flex-direction: column;
+          }
+          .dish-link-row-num {
+            padding-top: 0;
+          }
+          .dish-link-remove {
+            align-self: flex-end;
+            margin-top: 0;
+          }
         }
       `}</style>
     </Layout>
