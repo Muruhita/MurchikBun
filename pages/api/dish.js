@@ -6,15 +6,16 @@ const EDITOR_ID = '1018113109346504744';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const youtube = await redis.get('dish:youtube');
-    const link = await redis.get('dish:link');
-    const linkLabel = await redis.get('dish:linkLabel');
+    const linksRaw = await redis.get('dish:links');
     const text = await redis.get('dish:text');
 
+    let links = [];
+    if (linksRaw) {
+      try { links = JSON.parse(linksRaw); } catch { links = []; }
+    }
+
     return res.status(200).json({
-      youtube: youtube || '',
-      link: link || '',
-      linkLabel: linkLabel || 'Дополнительная ссылка',
+      links: Array.isArray(links) ? links : [],
       text: text || ''
     });
   }
@@ -28,29 +29,31 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Нет доступа. Только владелец может редактировать.' });
     }
 
-    const { youtube, link, linkLabel, text } = req.body;
+    const { links, text } = req.body;
 
-    if (typeof youtube === 'string') {
-      if (youtube.trim().length === 0) await redis.del('dish:youtube');
-      else await redis.set('dish:youtube', youtube.trim());
+    // Валидация и сохранение ссылок
+    if (Array.isArray(links)) {
+      const clean = links
+        .map(l => ({
+          label: String(l.label || '').trim(),
+          url: String(l.url || '').trim()
+        }))
+        .filter(l => l.label.length > 0 && l.url.length > 0);
+
+      if (clean.length === 0) {
+        await redis.del('dish:links');
+      } else {
+        await redis.set('dish:links', JSON.stringify(clean));
+      }
     }
 
-    if (typeof link === 'string') {
-      if (link.trim().length === 0) await redis.del('dish:link');
-      else await redis.set('dish:link', link.trim());
-    }
-
-    if (typeof linkLabel === 'string') {
-      if (linkLabel.trim().length === 0) await redis.del('dish:linkLabel');
-      else await redis.set('dish:linkLabel', linkLabel.trim());
-    }
-
+    // Сохранение текста
     if (typeof text === 'string') {
       if (text.trim().length === 0) await redis.del('dish:text');
       else await redis.set('dish:text', text.trim());
     }
 
-    return res.status(200).json({ message: '✅ Данные сохранены' });
+    return res.status(200).json({ message: '✅ Сохранено' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
