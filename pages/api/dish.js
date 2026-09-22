@@ -2,7 +2,6 @@
 import redis from '../../lib/redis';
 import { verifyToken } from '../../lib/discord';
 
-// Единственный юзер, который может редактировать эту страницу
 const EDITOR_ID = '1018113109346504744';
 
 export default async function handler(req, res) {
@@ -10,11 +9,13 @@ export default async function handler(req, res) {
     const youtube = await redis.get('dish:youtube');
     const link = await redis.get('dish:link');
     const linkLabel = await redis.get('dish:linkLabel');
+    const text = await redis.get('dish:text');
 
     return res.status(200).json({
       youtube: youtube || '',
       link: link || '',
-      linkLabel: linkLabel || 'Дополнительная ссылка'
+      linkLabel: linkLabel || 'Дополнительная ссылка',
+      text: text || ''
     });
   }
 
@@ -23,12 +24,11 @@ export default async function handler(req, res) {
     const user = verifyToken(token);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    // 🔒 Только указанный ID
     if (user.id !== EDITOR_ID) {
       return res.status(403).json({ error: 'Нет доступа. Только владелец может редактировать.' });
     }
 
-    const { youtube, link, linkLabel } = req.body;
+    const { youtube, link, linkLabel, text } = req.body;
 
     if (typeof youtube === 'string') {
       if (youtube.trim().length === 0) await redis.del('dish:youtube');
@@ -43,6 +43,11 @@ export default async function handler(req, res) {
     if (typeof linkLabel === 'string') {
       if (linkLabel.trim().length === 0) await redis.del('dish:linkLabel');
       else await redis.set('dish:linkLabel', linkLabel.trim());
+    }
+
+    if (typeof text === 'string') {
+      if (text.trim().length === 0) await redis.del('dish:text');
+      else await redis.set('dish:text', text.trim());
     }
 
     return res.status(200).json({ message: '✅ Данные сохранены' });
