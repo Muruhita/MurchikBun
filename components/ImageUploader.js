@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { isSafeUrl } from '../lib/urlValidator';
 
 const MAX_SIZE_MB = 5;
 
@@ -93,10 +94,13 @@ export default function ImageUploader({
       setError('❌ Введите ссылку');
       return;
     }
-    if (!/^https?:\/\//i.test(trimmed)) {
-      setError('❌ Ссылка должна начинаться с http:// или https://');
+
+    // 🔒 Полная проверка безопасности
+    if (!isSafeUrl(trimmed, { maxLength: 1000 })) {
+      setError('❌ Ссылка небезопасна (запрещены javascript:, data:, приватные адреса, спецсимволы)');
       return;
     }
+
     setError('');
     onChange(trimmed);
     setShowManual(false);
