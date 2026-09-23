@@ -5,7 +5,7 @@ import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwor
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
 import { sanitizeObject } from '../../lib/sanitize';
 import redis from '../../lib/redis';
-import { isSafeUrl, findUnsafeUrls } from '../../lib/urlValidator';
+import { findUnsafeUrls } from '../../lib/urlValidator';
 
 const DEPARTMENTS = {
   'ib': { name: 'IB (Intelligence Branch)', webhook: process.env.WEBHOOK_REPORT_IB, emoji: '🕵️', roleId: '1398200840900055071', roleId2: '1520504887497064639' },
@@ -47,6 +47,14 @@ const webhooks = {
   testlik: process.env.TESTLIK_WEBHOOK
 };
 
+// 🖼️ Хосты, с которых разрешено встраивать картинку в Discord-embed
+const EMBED_IMAGE_HOSTS = [
+  'https://i.ibb.co/',
+  'https://i.imgur.com/',
+  'https://media.discordapp.net/',
+  'https://cdn.discordapp.com/'
+];
+
 async function sendToDiscord(webhookUrl, data, retries = 3) {
   const safeWebhook = webhookUrl.replace('discord.com', 'discordapp.com');
   let lastError = null;
@@ -71,6 +79,35 @@ async function sendToDiscord(webhookUrl, data, retries = 3) {
     }
   }
   return { success: false, error: lastError ? lastError.message : 'Неизвестная ошибка' };
+}
+
+// 🔒 Поля-ссылки (проверяются на безопасность)
+const URL_FIELDS = [
+  'screenshot', 'screenshots', 'singleImage', 'multiImages',
+  'proof', 'proofLink', 'approvalLink', 'approval', 'rankProof',
+  'reportLink', 'workLink', 'workLinks',
+  'passportScreenshot', 'militaryId', 'medicalCertificates'
+];
+
+function collectUrlFields(formData) {
+  const result = [];
+
+  for (const field of URL_FIELDS) {
+    const value = formData[field];
+    if (!value) continue;
+
+    if (Array.isArray(value)) {
+      value.forEach((v, i) => {
+        if (typeof v === 'string') {
+          findUnsafeUrls(v).forEach(url => result.push({ field, index: i, url }));
+        }
+      });
+    } else if (typeof value === 'string') {
+      findUnsafeUrls(value).forEach(url => result.push({ field, url }));
+    }
+  }
+
+  return result;
 }
 
 export default async function handler(req, res) {
@@ -101,6 +138,15 @@ export default async function handler(req, res) {
   const formData = sanitizeObject(rawFormData, 1000);
   const userId = user.id;
   const username = user.username;
+
+  // 🔒 Проверка ссылок на безопасность (XSS / SSRF / control chars)
+  const unsafeLinks = collectUrlFields(formData);
+  if (unsafeLinks.length > 0) {
+    console.warn('[submit] Отклонены небезопасные ссылки:', unsafeLinks.map(u => u.url).join(', '));
+    return res.status(400).json({
+      error: 'Обнаружены небезопасные ссылки. Разрешены только http/https без приватных адресов и опасных протоколов (javascript:, data:, file:).'
+    });
+  }
 
   const allText = Object.values(formData).filter(val => typeof val === 'string').join(' ');
 
@@ -195,8 +241,11 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
 
-  // 🖼️ Если есть скриншот с imgbb — показываем картинку прямо в embed
-  if (formData.screenshot && formData.screenshot.startsWith('https://i.ibb.co/')) {
+  // 🖼️ Показываем картинку в embed, если URL с доверенного хоста
+  if (
+    formData.screenshot &&
+    EMBED_IMAGE_HOSTS.some(h => formData.screenshot.startsWith(h))
+  ) {
     embed.image = { url: formData.screenshot };
   }
 
