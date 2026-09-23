@@ -24,7 +24,7 @@ export default function Members() {
       <Layout>
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Загрузка участников...</p>
+          <p>Предзагрузка...</p>
         </div>
       </Layout>
     );
@@ -32,7 +32,7 @@ export default function Members() {
 
   return (
     <Layout>
-      <h1 className="page-title">юзеры</h1>
+      <h1 className="page-title">Юзеры</h1>
       
       {users.length === 0 ? (
         <p className="empty-text">Пока нет ни одного участника с заполненным профилем.</p>
