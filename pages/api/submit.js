@@ -5,7 +5,7 @@ import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwor
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
 import { sanitizeObject } from '../../lib/sanitize';
 import redis from '../../lib/redis';
-import { findUnsafeUrls } from '../../lib/urlValidator';
+import { findUnsafeUrls, TRUSTED_IMAGE_HOSTS } from '../../lib/urlValidator';
 
 const DEPARTMENTS = {
   'ib': { name: 'IB (Intelligence Branch)', webhook: process.env.WEBHOOK_REPORT_IB, emoji: '🕵️', roleId: '1398200840900055071', roleId2: '1520504887497064639' },
@@ -81,13 +81,25 @@ async function sendToDiscord(webhookUrl, data, retries = 3) {
   return { success: false, error: lastError ? lastError.message : 'Неизвестная ошибка' };
 }
 
-// 🔒 Поля-ссылки (проверяются на безопасность)
-const URL_FIELDS = [
+// ─────────────────────────────────────────────────────────────
+// 🔒 Классификация URL-полей
+// ─────────────────────────────────────────────────────────────
+
+// 🖼️ Image-поля — только доверенные хостеры картинок
+const IMAGE_FIELDS = [
   'screenshot', 'screenshots', 'singleImage', 'multiImages',
-  'proof', 'proofLink', 'approvalLink', 'approval', 'rankProof',
-  'reportLink', 'workLink', 'workLinks',
+  'proof', 'proofLink', 'rankProof',
   'passportScreenshot', 'militaryId', 'medicalCertificates'
 ];
+
+// 📄 Doc-поля — любая безопасная http(s) ссылка
+const DOC_FIELDS = [
+  'approvalLink', 'approval',
+  'reportLink', 'workLink', 'workLinks'
+];
+
+// Все поля для обхода formData
+const URL_FIELDS = [...IMAGE_FIELDS, ...DOC_FIELDS];
 
 function collectUrlFields(formData) {
   const result = [];
@@ -96,14 +108,19 @@ function collectUrlFields(formData) {
     const value = formData[field];
     if (!value) continue;
 
+    const isImage = IMAGE_FIELDS.includes(field);
+    const opts = isImage
+      ? { maxLength: 1000, allowedHosts: TRUSTED_IMAGE_HOSTS }
+      : { maxLength: 2000 };
+
     if (Array.isArray(value)) {
       value.forEach((v, i) => {
         if (typeof v === 'string') {
-          findUnsafeUrls(v).forEach(url => result.push({ field, index: i, url }));
+          findUnsafeUrls(v, opts).forEach(url => result.push({ field, index: i, url }));
         }
       });
     } else if (typeof value === 'string') {
-      findUnsafeUrls(value).forEach(url => result.push({ field, url }));
+      findUnsafeUrls(value, opts).forEach(url => result.push({ field, url }));
     }
   }
 
@@ -139,12 +156,19 @@ export default async function handler(req, res) {
   const userId = user.id;
   const username = user.username;
 
-  // 🔒 Проверка ссылок на безопасность (XSS / SSRF / control chars)
+  // 🔒 Проверка ссылок на безопасность
+  //    Image-поля → whitelist хостеров картинок
+  //    Doc-поля   → обычная проверка
   const unsafeLinks = collectUrlFields(formData);
   if (unsafeLinks.length > 0) {
-    console.warn('[submit] Отклонены небезопасные ссылки:', unsafeLinks.map(u => u.url).join(', '));
+    console.warn('[submit] Отклонены небезопасные ссылки:', unsafeLinks.map(u => `${u.field}:${u.url}`).join(', '));
+
+    const hasImageIssue = unsafeLinks.some(u => IMAGE_FIELDS.includes(u.field));
+
     return res.status(400).json({
-      error: 'Обнаружены небезопасные ссылки. Разрешены только http/https без приватных адресов и опасных протоколов (javascript:, data:, file:).'
+      error: hasImageIssue
+        ? 'Скриншот/доказательство загружено с недоверенного хостинга. Разрешены: imgbb, imgur, Discord CDN, Google Drive, Yandex Disk, GitHub, Cloudinary, Pinterest и др.'
+        : 'Обнаружены небезопасные ссылки. Разрешены только http/https без приватных адресов и опасных протоколов (javascript:, data:, file:).'
     });
   }
 
@@ -322,7 +346,6 @@ function getFormColor(type) {
 }
 
 function buildFields(type, department, targetDepartment, data, userId, username) {
-  // 🧪 TESTLIK — тестовая форма
   if (type === 'testlik') {
     const fields = [
       { name: '📝 Поле "Имя"', value: data.name || '—', inline: false },
