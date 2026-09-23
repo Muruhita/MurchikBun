@@ -5,7 +5,14 @@ import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwor
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
 import { sanitizeObject } from '../../lib/sanitize';
 import redis from '../../lib/redis';
-import { findUnsafeUrls, TRUSTED_IMAGE_HOSTS } from '../../lib/urlValidator';
+import {
+  findUnsafeUrls,
+  isHostInWhitelist,
+  extractUrls,
+  TRUSTED_IMAGE_HOSTS,
+  TRUSTED_LINK_HOSTS
+} from '../../lib/urlValidator';
+import { checkUrlsSafeBrowsing, threatName } from '../../lib/safeBrowsing';
 
 const DEPARTMENTS = {
   'ib': { name: 'IB (Intelligence Branch)', webhook: process.env.WEBHOOK_REPORT_IB, emoji: '🕵️', roleId: '1398200840900055071', roleId2: '1520504887497064639' },
@@ -92,13 +99,12 @@ const IMAGE_FIELDS = [
   'passportScreenshot', 'militaryId', 'medicalCertificates'
 ];
 
-// 📄 Doc-поля — любая безопасная http(s) ссылка
+// 📄 Doc-поля — ссылки на отчёты, документы
 const DOC_FIELDS = [
   'approvalLink', 'approval',
   'reportLink', 'workLink', 'workLinks'
 ];
 
-// Все поля для обхода formData
 const URL_FIELDS = [...IMAGE_FIELDS, ...DOC_FIELDS];
 
 function collectUrlFields(formData) {
@@ -111,7 +117,7 @@ function collectUrlFields(formData) {
     const isImage = IMAGE_FIELDS.includes(field);
     const opts = isImage
       ? { maxLength: 1000, allowedHosts: TRUSTED_IMAGE_HOSTS }
-      : { maxLength: 2000 };
+      : { maxLength: 2000, allowedHosts: TRUSTED_LINK_HOSTS };
 
     if (Array.isArray(value)) {
       value.forEach((v, i) => {
@@ -156,9 +162,9 @@ export default async function handler(req, res) {
   const userId = user.id;
   const username = user.username;
 
-  // 🔒 Проверка ссылок на безопасность
-  //    Image-поля → whitelist хостеров картинок
-  //    Doc-поля   → обычная проверка
+  // ─────────────────────────────────────────────────
+  // 🔒 Слой 1: whitelist + протоколы + приватные IP
+  // ─────────────────────────────────────────────────
   const unsafeLinks = collectUrlFields(formData);
   if (unsafeLinks.length > 0) {
     console.warn('[submit] Отклонены небезопасные ссылки:', unsafeLinks.map(u => `${u.field}:${u.url}`).join(', '));
@@ -168,11 +174,32 @@ export default async function handler(req, res) {
     return res.status(400).json({
       error: hasImageIssue
         ? 'Скриншот/доказательство загружено с недоверенного хостинга. Разрешены: imgbb, imgur, Discord CDN, Google Drive, Yandex Disk, GitHub, Cloudinary, Pinterest и др.'
-        : 'Обнаружены небезопасные ссылки. Разрешены только http/https без приватных адресов и опасных протоколов (javascript:, data:, file:).'
+        : 'Обнаружены небезопасные ссылки. Разрешены только http/https с доверенных хостов.'
     });
   }
 
-  const allText = Object.values(formData).filter(val => typeof val === 'string').join(' ');
+  // ─────────────────────────────────────────────────
+  // 🔒 Слой 2: Google Safe Browsing — только для URL вне whitelist
+  // ─────────────────────────────────────────────────
+  const allText = Object.values(formData).filter(v => typeof v === 'string').join(' ');
+  const allUrls = extractUrls(allText);
+
+  const urlsToCheck = allUrls.filter(url => {
+    const isTrustedImage = isHostInWhitelist(url, TRUSTED_IMAGE_HOSTS);
+    const isTrustedLink = isHostInWhitelist(url, TRUSTED_LINK_HOSTS);
+    return !isTrustedImage && !isTrustedLink;
+  });
+
+  if (urlsToCheck.length > 0) {
+    const sbResult = await checkUrlsSafeBrowsing(urlsToCheck);
+
+    if (!sbResult.safe) {
+      console.warn('[submit] SafeBrowsing BLOCK:', sbResult.url, sbResult.threat);
+      return res.status(400).json({
+        error: `Ссылка "${sbResult.url}" помечена как ${threatName(sbResult.threat)}. Заявка отклонена.`
+      });
+    }
+  }
 
   // 🚫 Банворды
   if (containsBadWords(allText)) {
