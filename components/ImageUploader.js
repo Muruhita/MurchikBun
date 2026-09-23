@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { isSafeUrl } from '../lib/urlValidator';
+import { isSafeUrl, TRUSTED_IMAGE_HOSTS } from '../lib/urlValidator';
 
 const MAX_SIZE_MB = 5;
 
@@ -95,9 +95,14 @@ export default function ImageUploader({
       return;
     }
 
-    // 🔒 Полная проверка безопасности
-    if (!isSafeUrl(trimmed, { maxLength: 1000 })) {
-      setError('❌ Ссылка небезопасна (запрещены javascript:, data:, приватные адреса, спецсимволы)');
+    // 🔒 Проверка безопасности + whitelist хостеров картинок
+    const safe = isSafeUrl(trimmed, {
+      maxLength: 1000,
+      allowedHosts: TRUSTED_IMAGE_HOSTS
+    });
+
+    if (!safe) {
+      setError('❌ Хостинг не в белом списке. Разрешены: imgbb, imgur, Discord CDN, Google Drive, Yandex Disk, Pinterest и др.');
       return;
     }
 
@@ -139,7 +144,6 @@ export default function ImageUploader({
               )}
             </div>
 
-            {/* 🔗 Кнопка "Если не работает" */}
             {allowManualUrl && !uploading && (
               <>
                 {!showManual ? (
@@ -156,7 +160,7 @@ export default function ImageUploader({
                       type="url"
                       value={manualUrl}
                       onChange={(e) => setManualUrl(e.target.value)}
-                      placeholder="https://imgur.com/... или https://i.ibb.co/..."
+                      placeholder="https://i.ibb.co/... (только доверенные хостеры)"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -209,7 +213,6 @@ export default function ImageUploader({
           </div>
         )}
 
-        {/* Если URL добавлен вручную (без preview) */}
         {value && !preview && (
           <div className="url-box">
             <input type="text" value={value} readOnly />
@@ -297,7 +300,6 @@ export default function ImageUploader({
           margin: 0;
         }
 
-        /* 🔗 Manual URL toggle */
         .manual-toggle {
           display: block;
           width: 100%;
