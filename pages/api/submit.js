@@ -5,6 +5,7 @@ import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwor
 import { checkSpam, isFormSubmissionActive } from '../../lib/antispam';
 import { sanitizeObject } from '../../lib/sanitize';
 import redis from '../../lib/redis';
+import { isSafeUrl, findUnsafeUrls } from '../../lib/urlValidator';
 
 const DEPARTMENTS = {
   'ib': { name: 'IB (Intelligence Branch)', webhook: process.env.WEBHOOK_REPORT_IB, emoji: '🕵️', roleId: '1398200840900055071', roleId2: '1520504887497064639' },
