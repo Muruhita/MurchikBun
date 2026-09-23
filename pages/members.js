@@ -32,7 +32,7 @@ export default function Members() {
 
   return (
     <Layout>
-      <h1 className="page-title">👥 Участники</h1>
+      <h1 className="page-title">юзеры</h1>
       
       {users.length === 0 ? (
         <p className="empty-text">Пока нет ни одного участника с заполненным профилем.</p>
