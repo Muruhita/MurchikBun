@@ -12,6 +12,8 @@ export default function Hosting() {
     { name: 'Imgur', url: 'https://imgur.com/upload' },
     { name: 'Imgbb', url: 'https://ru.imgbb.com' },
     { name: 'Яндекс Диск', url: 'https://disk.yandex.ru/client/recent' },
+    { name: 'Pixsafe', url: 'https://pixsafe.online' },
+    { name: 'Pixhost', url: 'https://pixhost.to' },
   ];
 
   return (
