@@ -35,7 +35,7 @@ export default function BanOverlay({
             {until && <p className="ban-until">До: {until}</p>}
 
             <p className="ban-hint">
-              Если вы считаете это ошибкой — обратитесь в <strong>Discord</strong> к администрации.
+              Если вы считаете это ошибкой — обратитесь в <strong>Discord</strong> к @muruh1ta(Мурчик, ASS|AF), в крайняк к Dep.Dir или Foren(COD) .
             </p>
 
             <button className="ban-btn" onClick={handleClose}>
